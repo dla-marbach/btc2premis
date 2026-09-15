@@ -3,9 +3,9 @@
 This document describes how `btc2premis` maps the technical metadata from the
 Browsertrix Cloud API to [PREMIS 3.0](https://www.loc.gov/standards/premis/v3/index.html).
 
-> **Work in progress:** This mapping is preliminary and subject to change.
-> Element names, the custom `btrix` namespace, and the application profile
-> described below have not been finalized.
+> **Work in progress:**
+> This mapping is preliminary and subject to change.
+> Element names and the custom `btrix` namespace have not been finalized.
 
 ## 1. Document structure
 
