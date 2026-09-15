@@ -340,7 +340,7 @@
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
       <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingObjectIdentifier>
@@ -446,7 +446,7 @@
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
       <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingObjectIdentifier>
@@ -484,7 +484,7 @@
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:agentIdentifierValue>
+      <premis:agentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>btc2premis</premis:agentName>
     <premis:agentType>software</premis:agentType>
