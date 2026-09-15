@@ -1,0 +1,203 @@
+{
+  "crawlconfig": {
+    "autoAddCollections": [
+      "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"
+    ],
+    "browserWindows": 4,
+    "config": {
+      "behaviorTimeout": 90,
+      "behaviors": "autoscroll,autoclick,siteSpecific",
+      "blockAds": true,
+      "clickSelector": "a",
+      "customBehaviors": [
+        "https://example.org/behavior.js"
+      ],
+      "dedupeCollId": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+      "depth": 2,
+      "exclude": [
+        "/kalender/"
+      ],
+      "extraHops": 1,
+      "failOnFailedSeed": true,
+      "include": [],
+      "lang": "de",
+      "limit": 500,
+      "pageExtraDelay": 2,
+      "pageLoadTimeout": 120,
+      "postLoadDelay": 5,
+      "saveStorage": true,
+      "scopeType": "prefix",
+      "seeds": [
+        {
+          "depth": 2,
+          "exclude": [
+            "/impressum"
+          ],
+          "extraHops": 1,
+          "scopeType": "prefix",
+          "url": "https://example.org/"
+        },
+        {
+          "url": "https://example.org/extra"
+        }
+      ],
+      "selectLinks": [
+        "a[href]->href"
+      ],
+      "useRobots": false,
+      "useSitemap": true,
+      "userAgent": "DLA Marbach Webarchiv"
+    },
+    "crawlCount": 2,
+    "crawlTimeout": 86400,
+    "crawlerChannel": "default",
+    "created": "2025-01-15T09:12:00Z",
+    "createdByName": "Digitales Archiv",
+    "description": "Wöchentlicher Crawl einer Netzliteratur-Website",
+    "firstSeed": "https://example.org/",
+    "id": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+    "jobType": "custom",
+    "lastCrawlState": "complete",
+    "lastCrawlTime": "2025-06-09T03:41:12Z",
+    "maxCrawlSize": 10737418240,
+    "modified": "2025-06-02T11:45:00Z",
+    "modifiedByName": "Digitales Archiv",
+    "name": "Beispiel-Netzliteratur",
+    "oid": "05b62bc6-7787-4e27-876b-2ac41c63b14b",
+    "profileName": "DLA-Standardprofil",
+    "profileid": "5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7",
+    "rev": 3,
+    "schedule": "0 3 * * 1",
+    "seedCount": 2,
+    "tags": [
+      "netzliteratur",
+      "test"
+    ]
+  },
+  "crawls": [
+    {
+      "browserWindows": 4,
+      "cid": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+      "cid_rev": 2,
+      "collectionIds": [
+        "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"
+      ],
+      "config": {
+        "behaviors": "autoscroll,siteSpecific",
+        "blockAds": true,
+        "depth": 2,
+        "extraHops": 1,
+        "limit": 500,
+        "saveStorage": true,
+        "scopeType": "prefix",
+        "seeds": [
+          {
+            "scopeType": "prefix",
+            "url": "https://example.org/"
+          }
+        ],
+        "selectLinks": [
+          "a[href]->href"
+        ],
+        "useSitemap": true,
+        "userAgent": "DLA Marbach Webarchiv"
+      },
+      "crawlExecSeconds": 2331,
+      "crawlerChannel": "default",
+      "errorPageCount": 3,
+      "fileCount": 1,
+      "fileSize": 194837122,
+      "finished": "2025-06-02T03:38:55Z",
+      "id": "a1b2c3d4-1111-4a2b-8c3d-000000000001",
+      "image": "docker.io/webrecorder/browsertrix-crawler:1.6.1",
+      "manual": false,
+      "name": "Beispiel-Netzliteratur",
+      "oid": "05b62bc6-7787-4e27-876b-2ac41c63b14b",
+      "pageCount": 412,
+      "profileName": "DLA-Standardprofil",
+      "profileid": "5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7",
+      "resources": [
+        {
+          "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000001",
+          "hash": "sha256:ee124a71fad91a63d25cc18827f447b07cecb9414c1844499eeb4b0d5d90085b",
+          "name": "a1b2c3d4-1111-4a2b-8c3d-000000000001.wacz",
+          "path": "https://storage.example/presigned-url-that-expires",
+          "size": 194837122
+        }
+      ],
+      "started": "2025-06-02T03:00:04Z",
+      "state": "complete",
+      "stats": {
+        "done": 412,
+        "found": 415,
+        "size": 194837122
+      },
+      "tags": [
+        "netzliteratur"
+      ],
+      "type": "crawl",
+      "userName": "archive@example.com",
+      "userid": "9f8e7d6c-2222-4b3a-9d4e-000000000002"
+    },
+    {
+      "browserWindows": 4,
+      "cid": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+      "cid_rev": 3,
+      "config": {
+        "behaviors": "autoscroll,autoclick,siteSpecific",
+        "blockAds": true,
+        "clickSelector": "button",
+        "depth": 2,
+        "extraHops": 1,
+        "limit": 500,
+        "saveStorage": true,
+        "scopeType": "prefix",
+        "seeds": [
+          {
+            "scopeType": "prefix",
+            "url": "https://example.org/"
+          }
+        ],
+        "selectLinks": [
+          "a[href]->href"
+        ],
+        "useSitemap": true,
+        "userAgent": "DLA Marbach Webarchiv"
+      },
+      "crawlExecSeconds": 2465,
+      "crawlerChannel": "default",
+      "fileCount": 1,
+      "fileSize": 201337000,
+      "finished": "2025-06-09T03:41:12Z",
+      "id": "a1b2c3d4-1111-4a2b-8c3d-000000000003",
+      "image": "docker.io/webrecorder/browsertrix-crawler:1.7.0",
+      "manual": false,
+      "oid": "05b62bc6-7787-4e27-876b-2ac41c63b14b",
+      "pageCount": 420,
+      "resources": [
+        {
+          "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000003",
+          "hash": "sha256:728aad21c6a71e77d8ecba4eefb25e445b051a47fa6b59dc0860291fed7af278",
+          "name": "a1b2c3d4-1111-4a2b-8c3d-000000000003.wacz",
+          "path": "https://storage.example/presigned-url-that-expires",
+          "size": 201337000
+        }
+      ],
+      "started": "2025-06-09T03:00:07Z",
+      "state": "complete",
+      "stats": {
+        "done": 420,
+        "found": 421,
+        "size": 201337000
+      },
+      "type": "crawl",
+      "userName": "archive@example.com",
+      "userid": "9f8e7d6c-2222-4b3a-9d4e-000000000002"
+    }
+  ],
+  "org": {
+    "id": "05b62bc6-7787-4e27-876b-2ac41c63b14b",
+    "name": "DLA Marbach",
+    "slug": "dla-marbach"
+  }
+}

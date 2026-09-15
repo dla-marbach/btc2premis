@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "btc2premis"
+version = "0.1.0"
+description = "Export technical metadata of Browsertrix Cloud crawls as PREMIS 3.0 XML"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Deutsches Literaturarchiv Marbach" }]
+keywords = ["browsertrix", "premis", "webarchiving", "digital preservation"]
+dependencies = []
+
+[project.optional-dependencies]
+validate = ["lxml>=5.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+btc2premis = "btc2premis.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# the test modules import shared helpers via ``tests.conftest``; make the
+# project root importable regardless of how pytest is invoked
+pythonpath = ["."]

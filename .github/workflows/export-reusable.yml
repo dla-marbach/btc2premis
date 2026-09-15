@@ -1,0 +1,96 @@
+name: Export crawl configs (reusable)
+
+# Reusable workflow that performs the actual crawl-config export: checks out
+# btc2premis, installs it, exports changed crawl configs into <output-dir> of
+# the *caller* repository, and commits/pushes the result there.
+#
+# Intended to be called from a thin trigger workflow in another (private)
+# repository, e.g.:
+#
+#   jobs:
+#     export:
+#       uses: dla-marbach/btc2premis/.github/workflows/export-reusable.yml@main
+#       permissions:
+#         contents: write
+#       with:
+#         output-dir: data
+#       secrets: inherit
+
+on:
+  workflow_call:
+    inputs:
+      output-dir:
+        description: "Directory (relative to the caller repo root) with README.md, json/ and premis/xml/"
+        required: false
+        type: string
+        default: data
+      ref:
+        description: "Git ref of dla-marbach/btc2premis to check out and install"
+        required: false
+        type: string
+        default: main
+    secrets:
+      BTC_USER:
+        required: true
+      BTC_PASSWORD:
+        required: true
+      BTC_OID:
+        required: true
+      BTC_BASE_URL:
+        required: false
+
+concurrency:
+  group: crawl-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    env:
+      BTC_USER: ${{ secrets.BTC_USER }}
+      BTC_PASSWORD: ${{ secrets.BTC_PASSWORD }}
+      BTC_OID: ${{ secrets.BTC_OID }}
+      BTC_BASE_URL: ${{ secrets.BTC_BASE_URL }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v5
+
+      - name: Checkout btc2premis
+        uses: actions/checkout@v5
+        with:
+          repository: dla-marbach/btc2premis
+          ref: ${{ inputs.ref }}
+          path: btc2premis-src
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install btc2premis
+        run: python -m pip install --upgrade pip && pip install ./btc2premis-src
+
+      - name: Fetch current crawl config overview
+        run: |
+          btc2premis --list --format markdown > /tmp/README.md
+
+      - name: Determine changed crawl configs and export PREMIS + raw JSON
+        run: |
+          python btc2premis-src/.github/workflows/scripts/export_changed.py \
+            --previous "${{ inputs.output-dir }}/README.md" \
+            --current /tmp/README.md \
+            --output-dir "${{ inputs.output-dir }}"
+
+      - name: Update overview file
+        run: cp /tmp/README.md "${{ inputs.output-dir }}/README.md"
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain -- "${{ inputs.output-dir }}")" ]; then
+            git add "${{ inputs.output-dir }}/README.md" "${{ inputs.output-dir }}/json" "${{ inputs.output-dir }}/premis"
+            git commit -m "Update crawl config exports ($(date -u +%Y-%m-%d))"
+            git push
+          else
+            echo "No changes to commit."
+          fi

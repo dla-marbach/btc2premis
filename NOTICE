@@ -1,0 +1,13 @@
+NOTICE
+======
+
+This project ("btc2premis") is licensed under the MIT License; see
+[`LICENSE`](LICENSE).
+
+It bundles the following third-party files, which are **not** covered by the
+MIT License above and remain subject to their original terms:
+
+* [`premis.xsd`](premis.xsd) – the official PREMIS 3.0 XML Schema, published
+  by the Library of Congress / PREMIS Editorial Committee
+  (https://www.loc.gov/standards/premis/). It is redistributed unmodified so
+  that `btc2premis --validate` works without a network connection.

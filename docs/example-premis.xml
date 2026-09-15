@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This PREMIS mapping is preliminary and still work in progress; element names and the custom btrix namespace may still change. -->
+<premis:premis xmlns:btrix="http://example.com/ns/browsertrix/v1" xmlns:premis="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd">
+  <premis:object xsi:type="premis:intellectualEntity">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>_497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:significantProperties>
+      <premis:significantPropertiesType>crawl configuration</premis:significantPropertiesType>
+      <premis:significantPropertiesExtension>
+        <btrix:crawlWorkflow workflowId="497f6eca-6276-4993-bfeb-53cbbbba6f08">
+          <btrix:scope>
+            <btrix:scopeType>prefix</btrix:scopeType>
+            <btrix:startUrl>https://example.org/</btrix:startUrl>
+            <btrix:maxDepth>2</btrix:maxDepth>
+            <btrix:extraHops>1</btrix:extraHops>
+            <btrix:includeLinkedPages>true</btrix:includeLinkedPages>
+            <btrix:useRobots>false</btrix:useRobots>
+            <btrix:useSitemap>true</btrix:useSitemap>
+            <btrix:selectLinks>a[href]-&gt;href</btrix:selectLinks>
+            <btrix:additionalPages>https://example.org/extra</btrix:additionalPages>
+            <btrix:exclude>/kalender/</btrix:exclude>
+            <btrix:failOnFailedSeed>true</btrix:failOnFailedSeed>
+            <btrix:seeds>
+              <btrix:url>https://example.org/</btrix:url>
+              <btrix:scopeType>prefix</btrix:scopeType>
+              <btrix:depth>2</btrix:depth>
+              <btrix:extraHops>1</btrix:extraHops>
+              <btrix:exclude>/impressum</btrix:exclude>
+            </btrix:seeds>
+            <btrix:seeds>
+              <btrix:url>https://example.org/extra</btrix:url>
+            </btrix:seeds>
+            <btrix:dedupeCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:dedupeCollection>
+          </btrix:scope>
+          <btrix:limits>
+            <btrix:maxPages>500</btrix:maxPages>
+            <btrix:crawlTimeoutSeconds>86400</btrix:crawlTimeoutSeconds>
+            <btrix:maxCrawlSizeBytes>10737418240</btrix:maxCrawlSizeBytes>
+          </btrix:limits>
+          <btrix:pageBehavior>
+            <btrix:behaviors>autoscroll</btrix:behaviors>
+            <btrix:behaviors>autoclick</btrix:behaviors>
+            <btrix:behaviors>siteSpecific</btrix:behaviors>
+            <btrix:autoscroll>true</btrix:autoscroll>
+            <btrix:autoclick>true</btrix:autoclick>
+            <btrix:clickSelector>a</btrix:clickSelector>
+            <btrix:customBehaviors>https://example.org/behavior.js</btrix:customBehaviors>
+            <btrix:behaviorTimeoutSeconds>90</btrix:behaviorTimeoutSeconds>
+            <btrix:pageLoadTimeoutSeconds>120</btrix:pageLoadTimeoutSeconds>
+            <btrix:postLoadDelaySeconds>5</btrix:postLoadDelaySeconds>
+            <btrix:pageExtraDelaySeconds>2</btrix:pageExtraDelaySeconds>
+          </btrix:pageBehavior>
+          <btrix:browserSettings>
+            <btrix:browserProfileId>5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7</btrix:browserProfileId>
+            <btrix:browserProfileName>DLA-Standardprofil</btrix:browserProfileName>
+            <btrix:browserWindows>4</btrix:browserWindows>
+            <btrix:crawlerChannel>default</btrix:crawlerChannel>
+            <btrix:blockAds>true</btrix:blockAds>
+            <btrix:saveStorage>true</btrix:saveStorage>
+            <btrix:userAgent>DLA Marbach Webarchiv</btrix:userAgent>
+            <btrix:language>de</btrix:language>
+          </btrix:browserSettings>
+          <btrix:scheduling>
+            <btrix:crawlSchedule>0 3 * * 1</btrix:crawlSchedule>
+          </btrix:scheduling>
+          <btrix:collections>
+            <btrix:autoAddToCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:autoAddToCollection>
+          </btrix:collections>
+          <btrix:metadata>
+            <btrix:name>Beispiel-Netzliteratur</btrix:name>
+            <btrix:description>Wöchentlicher Crawl einer Netzliteratur-Website</btrix:description>
+            <btrix:tags>netzliteratur</btrix:tags>
+            <btrix:tags>test</btrix:tags>
+            <btrix:jobType>custom</btrix:jobType>
+            <btrix:created>2025-01-15T09:12:00Z</btrix:created>
+            <btrix:createdBy>Digitales Archiv</btrix:createdBy>
+            <btrix:modified>2025-06-02T11:45:00Z</btrix:modified>
+            <btrix:modifiedBy>Digitales Archiv</btrix:modifiedBy>
+            <btrix:revision>3</btrix:revision>
+          </btrix:metadata>
+        </btrix:crawlWorkflow>
+      </premis:significantPropertiesExtension>
+    </premis:significantProperties>
+    <premis:originalName>Beispiel-Netzliteratur</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+  </premis:object>
+  <premis:object xsi:type="premis:representation">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000001)</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_fa59946e-8a04-5568-a77b-69aed9dab1b2</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+  <premis:object xsi:type="premis:file">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>_fa59946e-8a04-5568-a77b-69aed9dab1b2</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:objectCharacteristics>
+      <premis:compositionLevel>0</premis:compositionLevel>
+      <premis:fixity>
+        <premis:messageDigestAlgorithm>SHA-256</premis:messageDigestAlgorithm>
+        <premis:messageDigest>bb8007384a8074290b9247f012c34c30c787b832f641dd4a36a9e33271e8fab1</premis:messageDigest>
+      </premis:fixity>
+      <premis:size>194837122</premis:size>
+      <premis:format>
+        <premis:formatDesignation>
+          <premis:formatName>WACZ</premis:formatName>
+        </premis:formatDesignation>
+      </premis:format>
+      <premis:format>
+        <premis:formatRegistry>
+          <premis:formatRegistryName>Media types</premis:formatRegistryName>
+          <premis:formatRegistryKey>application/wacz</premis:formatRegistryKey>
+        </premis:formatRegistry>
+      </premis:format>
+    </premis:objectCharacteristics>
+    <premis:originalName>a1b2c3d4-1111-4a2b-8c3d-000000000001.wacz</premis:originalName>
+    <premis:storage>
+      <premis:contentLocation>
+        <premis:contentLocationType>Path</premis:contentLocationType>
+        <premis:contentLocationValue>./a1b2c3d4-1111-4a2b-8c3d-000000000001.wacz</premis:contentLocationValue>
+      </premis:contentLocation>
+    </premis:storage>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+  </premis:object>
+  <premis:object xsi:type="premis:representation">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000003)</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_56296f4e-5e89-5172-91bb-bcd159dff552</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+  <premis:object xsi:type="premis:file">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>_56296f4e-5e89-5172-91bb-bcd159dff552</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:objectCharacteristics>
+      <premis:compositionLevel>0</premis:compositionLevel>
+      <premis:fixity>
+        <premis:messageDigestAlgorithm>SHA-256</premis:messageDigestAlgorithm>
+        <premis:messageDigest>b28ad2129fcd55f3a2ce66297e8ec8e166a4892cff8b4a591ba9315cd175ffb6</premis:messageDigest>
+      </premis:fixity>
+      <premis:size>201337000</premis:size>
+      <premis:format>
+        <premis:formatDesignation>
+          <premis:formatName>WACZ</premis:formatName>
+        </premis:formatDesignation>
+      </premis:format>
+      <premis:format>
+        <premis:formatRegistry>
+          <premis:formatRegistryName>Media types</premis:formatRegistryName>
+          <premis:formatRegistryKey>application/wacz</premis:formatRegistryKey>
+        </premis:formatRegistry>
+      </premis:format>
+    </premis:objectCharacteristics>
+    <premis:originalName>a1b2c3d4-1111-4a2b-8c3d-000000000003.wacz</premis:originalName>
+    <premis:storage>
+      <premis:contentLocation>
+        <premis:contentLocationType>Path</premis:contentLocationType>
+        <premis:contentLocationValue>./a1b2c3d4-1111-4a2b-8c3d-000000000003.wacz</premis:contentLocationValue>
+      </premis:contentLocation>
+    </premis:storage>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+  </premis:object>
+  <premis:event>
+    <premis:eventIdentifier>
+      <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:eventIdentifierValue>
+    </premis:eventIdentifier>
+    <premis:eventType>capture</premis:eventType>
+    <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>
+    <premis:eventDetailInformation>
+      <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.6.1 via Browsertrix; crawl config 'Beispiel-Netzliteratur'; crawl config id 497f6eca-6276-4993-bfeb-53cbbbba6f08; crawl id a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventDetail>
+      <premis:eventDetailExtension>
+        <btrix:crawlConfiguration workflowId="497f6eca-6276-4993-bfeb-53cbbbba6f08" crawlId="a1b2c3d4-1111-4a2b-8c3d-000000000001">
+          <btrix:scope>
+            <btrix:scopeType>prefix</btrix:scopeType>
+            <btrix:startUrl>https://example.org/</btrix:startUrl>
+            <btrix:maxDepth>2</btrix:maxDepth>
+            <btrix:extraHops>1</btrix:extraHops>
+            <btrix:includeLinkedPages>true</btrix:includeLinkedPages>
+            <btrix:useSitemap>true</btrix:useSitemap>
+            <btrix:selectLinks>a[href]-&gt;href</btrix:selectLinks>
+            <btrix:seeds>
+              <btrix:url>https://example.org/</btrix:url>
+              <btrix:scopeType>prefix</btrix:scopeType>
+            </btrix:seeds>
+            <btrix:dedupeCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:dedupeCollection>
+          </btrix:scope>
+          <btrix:limits>
+            <btrix:maxPages>500</btrix:maxPages>
+            <btrix:crawlTimeoutSeconds>86400</btrix:crawlTimeoutSeconds>
+            <btrix:maxCrawlSizeBytes>10737418240</btrix:maxCrawlSizeBytes>
+          </btrix:limits>
+          <btrix:pageBehavior>
+            <btrix:behaviors>autoscroll</btrix:behaviors>
+            <btrix:behaviors>siteSpecific</btrix:behaviors>
+            <btrix:autoscroll>true</btrix:autoscroll>
+            <btrix:autoclick>false</btrix:autoclick>
+          </btrix:pageBehavior>
+          <btrix:browserSettings>
+            <btrix:browserProfileId>5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7</btrix:browserProfileId>
+            <btrix:browserProfileName>DLA-Standardprofil</btrix:browserProfileName>
+            <btrix:browserWindows>4</btrix:browserWindows>
+            <btrix:crawlerChannel>default</btrix:crawlerChannel>
+            <btrix:crawlerImage>docker.io/webrecorder/browsertrix-crawler:1.6.1</btrix:crawlerImage>
+            <btrix:blockAds>true</btrix:blockAds>
+            <btrix:saveStorage>true</btrix:saveStorage>
+            <btrix:userAgent>DLA Marbach Webarchiv</btrix:userAgent>
+          </btrix:browserSettings>
+          <btrix:scheduling>
+            <btrix:crawlSchedule>0 3 * * 1</btrix:crawlSchedule>
+          </btrix:scheduling>
+          <btrix:collections>
+            <btrix:autoAddToCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:autoAddToCollection>
+            <btrix:collection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:collection>
+          </btrix:collections>
+          <btrix:metadata>
+            <btrix:name>Beispiel-Netzliteratur</btrix:name>
+            <btrix:description>Wöchentlicher Crawl einer Netzliteratur-Website</btrix:description>
+            <btrix:tags>netzliteratur</btrix:tags>
+            <btrix:jobType>custom</btrix:jobType>
+            <btrix:created>2025-01-15T09:12:00Z</btrix:created>
+            <btrix:createdBy>Digitales Archiv</btrix:createdBy>
+            <btrix:modified>2025-06-02T11:45:00Z</btrix:modified>
+            <btrix:modifiedBy>Digitales Archiv</btrix:modifiedBy>
+            <btrix:revision>3</btrix:revision>
+          </btrix:metadata>
+        </btrix:crawlConfiguration>
+      </premis:eventDetailExtension>
+    </premis:eventDetailInformation>
+    <premis:eventOutcomeInformation>
+      <premis:eventOutcome>complete</premis:eventOutcome>
+      <premis:eventOutcomeDetail>
+        <premis:eventOutcomeDetailNote>state=complete; started=2025-06-02T03:00:04Z; finished=2025-06-02T03:38:55Z; crawlExecSeconds=2331; pagesDone=412; pagesFound=415; pageCount=412; errorPageCount=3; fileCount=1; fileSize=194837122</premis:eventOutcomeDetailNote>
+      </premis:eventOutcomeDetail>
+    </premis:eventOutcomeInformation>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_31ca2581-f22e-5e4a-b66b-a190f2c0f166</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingObjectIdentifierValue>
+    </premis:linkingObjectIdentifier>
+  </premis:event>
+  <premis:event>
+    <premis:eventIdentifier>
+      <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:eventIdentifierValue>
+    </premis:eventIdentifier>
+    <premis:eventType>capture</premis:eventType>
+    <premis:eventDateTime>2025-06-09T03:00:07Z</premis:eventDateTime>
+    <premis:eventDetailInformation>
+      <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.7.0 via Browsertrix; crawl config 'Beispiel-Netzliteratur'; crawl config id 497f6eca-6276-4993-bfeb-53cbbbba6f08; crawl id a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:eventDetail>
+      <premis:eventDetailExtension>
+        <btrix:crawlConfiguration workflowId="497f6eca-6276-4993-bfeb-53cbbbba6f08" crawlId="a1b2c3d4-1111-4a2b-8c3d-000000000003">
+          <btrix:scope>
+            <btrix:scopeType>prefix</btrix:scopeType>
+            <btrix:startUrl>https://example.org/</btrix:startUrl>
+            <btrix:maxDepth>2</btrix:maxDepth>
+            <btrix:extraHops>1</btrix:extraHops>
+            <btrix:includeLinkedPages>true</btrix:includeLinkedPages>
+            <btrix:useSitemap>true</btrix:useSitemap>
+            <btrix:selectLinks>a[href]-&gt;href</btrix:selectLinks>
+            <btrix:seeds>
+              <btrix:url>https://example.org/</btrix:url>
+              <btrix:scopeType>prefix</btrix:scopeType>
+            </btrix:seeds>
+            <btrix:dedupeCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:dedupeCollection>
+          </btrix:scope>
+          <btrix:limits>
+            <btrix:maxPages>500</btrix:maxPages>
+            <btrix:crawlTimeoutSeconds>86400</btrix:crawlTimeoutSeconds>
+            <btrix:maxCrawlSizeBytes>10737418240</btrix:maxCrawlSizeBytes>
+          </btrix:limits>
+          <btrix:pageBehavior>
+            <btrix:behaviors>autoscroll</btrix:behaviors>
+            <btrix:behaviors>autoclick</btrix:behaviors>
+            <btrix:behaviors>siteSpecific</btrix:behaviors>
+            <btrix:autoscroll>true</btrix:autoscroll>
+            <btrix:autoclick>true</btrix:autoclick>
+            <btrix:clickSelector>button</btrix:clickSelector>
+          </btrix:pageBehavior>
+          <btrix:browserSettings>
+            <btrix:browserProfileId>5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7</btrix:browserProfileId>
+            <btrix:browserProfileName>DLA-Standardprofil</btrix:browserProfileName>
+            <btrix:browserWindows>4</btrix:browserWindows>
+            <btrix:crawlerChannel>default</btrix:crawlerChannel>
+            <btrix:crawlerImage>docker.io/webrecorder/browsertrix-crawler:1.7.0</btrix:crawlerImage>
+            <btrix:blockAds>true</btrix:blockAds>
+            <btrix:saveStorage>true</btrix:saveStorage>
+            <btrix:userAgent>DLA Marbach Webarchiv</btrix:userAgent>
+          </btrix:browserSettings>
+          <btrix:scheduling>
+            <btrix:crawlSchedule>0 3 * * 1</btrix:crawlSchedule>
+          </btrix:scheduling>
+          <btrix:collections>
+            <btrix:autoAddToCollection>
+              <btrix:id>1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</btrix:id>
+              <btrix:name>Netzliteratur</btrix:name>
+            </btrix:autoAddToCollection>
+          </btrix:collections>
+          <btrix:metadata>
+            <btrix:name>Beispiel-Netzliteratur</btrix:name>
+            <btrix:description>Wöchentlicher Crawl einer Netzliteratur-Website</btrix:description>
+            <btrix:tags>netzliteratur</btrix:tags>
+            <btrix:tags>test</btrix:tags>
+            <btrix:jobType>custom</btrix:jobType>
+            <btrix:created>2025-01-15T09:12:00Z</btrix:created>
+            <btrix:createdBy>Digitales Archiv</btrix:createdBy>
+            <btrix:modified>2025-06-02T11:45:00Z</btrix:modified>
+            <btrix:modifiedBy>Digitales Archiv</btrix:modifiedBy>
+            <btrix:revision>3</btrix:revision>
+          </btrix:metadata>
+        </btrix:crawlConfiguration>
+      </premis:eventDetailExtension>
+    </premis:eventDetailInformation>
+    <premis:eventOutcomeInformation>
+      <premis:eventOutcome>complete</premis:eventOutcome>
+      <premis:eventOutcomeDetail>
+        <premis:eventOutcomeDetailNote>state=complete; started=2025-06-09T03:00:07Z; finished=2025-06-09T03:41:12Z; crawlExecSeconds=2465; pagesDone=420; pagesFound=421; pageCount=420; fileCount=1; fileSize=201337000</premis:eventOutcomeDetailNote>
+      </premis:eventOutcomeDetail>
+    </premis:eventOutcomeInformation>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_eee21708-6724-5571-b57d-ecca2a1f8e27</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingObjectIdentifierValue>
+    </premis:linkingObjectIdentifier>
+  </premis:event>
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>_31ca2581-f22e-5e4a-b66b-a190f2c0f166</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix Crawler</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>1.6.1</premis:agentVersion>
+    <premis:agentNote>container image: docker.io/webrecorder/browsertrix-crawler:1.6.1</premis:agentNote>
+  </premis:agent>
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentNote>crawl management service by Webrecorder</premis:agentNote>
+  </premis:agent>
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>DLA Marbach</premis:agentName>
+    <premis:agentType>organization</premis:agentType>
+  </premis:agent>
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>_d557e409-aa2d-522a-9862-259395df20f7</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>btc2premis</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>0.1.0</premis:agentVersion>
+    <premis:agentNote>created this PREMIS record from the Browsertrix API</premis:agentNote>
+  </premis:agent>
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>_eee21708-6724-5571-b57d-ecca2a1f8e27</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix Crawler</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>1.7.0</premis:agentVersion>
+    <premis:agentNote>container image: docker.io/webrecorder/browsertrix-crawler:1.7.0</premis:agentNote>
+  </premis:agent>
+</premis:premis>

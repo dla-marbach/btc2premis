@@ -1,0 +1,139 @@
+name: API snapshot (reusable)
+
+# Reusable workflow that fetches the raw, merged Browsertrix API payload
+# (`--emit combined-json`) for one fixed, representative crawl config and
+# commits it as an example into <output-file> of the *caller* repository, if
+# it changed. This is *not* used by the package itself; it is a canary to
+# notice upstream Browsertrix API changes (new, removed or renamed fields) as
+# soon as possible, by diffing this file over time.
+#
+# Intended to be called from a thin trigger workflow in another (private)
+# repository, e.g.:
+#
+#   jobs:
+#     snapshot:
+#       uses: dla-marbach/btc2premis/.github/workflows/api-snapshot-reusable.yml@main
+#       permissions:
+#         contents: write
+#         issues: write
+#       with:
+#         output-file: data/api-change-snapshot.json
+#       secrets: inherit
+
+on:
+  workflow_call:
+    inputs:
+      output-file:
+        description: "Path (relative to the caller repo root) the snapshot is written to"
+        required: false
+        type: string
+        default: data/api-change-snapshot.json
+      ref:
+        description: "Git ref of dla-marbach/btc2premis to check out and install"
+        required: false
+        type: string
+        default: main
+    secrets:
+      BTC_USER:
+        required: true
+      BTC_PASSWORD:
+        required: true
+      BTC_OID:
+        required: true
+      BTC_BASE_URL:
+        required: false
+      API_SNAPSHOT_CID:
+        required: true
+
+concurrency:
+  group: api-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    env:
+      BTC_USER: ${{ secrets.BTC_USER }}
+      BTC_PASSWORD: ${{ secrets.BTC_PASSWORD }}
+      BTC_OID: ${{ secrets.BTC_OID }}
+      BTC_BASE_URL: ${{ secrets.BTC_BASE_URL }}
+      API_SNAPSHOT_CID: ${{ secrets.API_SNAPSHOT_CID }}
+    steps:
+      - name: Checkout caller repository
+        uses: actions/checkout@v5
+
+      - name: Checkout btc2premis
+        uses: actions/checkout@v5
+        with:
+          repository: dla-marbach/btc2premis
+          ref: ${{ inputs.ref }}
+          path: btc2premis-src
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install btc2premis
+        run: python -m pip install --upgrade pip && pip install ./btc2premis-src
+
+      - name: Fetch reference crawl config
+        run: |
+          mkdir -p "$(dirname "${{ inputs.output-file }}")"
+          btc2premis -c "$API_SNAPSHOT_CID" --emit combined-json > "${{ inputs.output-file }}"
+
+      - name: Detect API snapshot changes
+        id: detect_changes
+        run: |
+          # Mark a brand-new output file as intent-to-add so `git diff` also
+          # picks it up (a plain untracked file is otherwise invisible to
+          # `git diff`, which would wrongly report "no change" on first run).
+          git add -N -- "${{ inputs.output-file }}"
+          if git diff --quiet --exit-code -- "${{ inputs.output-file }}"; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push changes
+        id: commit_snapshot
+        if: steps.detect_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          previous_sha="$(git rev-parse HEAD)"
+          snapshot_date="$(date -u +%Y-%m-%d)"
+          git add "${{ inputs.output-file }}"
+          git commit -m "Update API snapshot (${snapshot_date})"
+          git push
+          echo "previous_sha=${previous_sha}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "snapshot_date=${snapshot_date}" >> "$GITHUB_OUTPUT"
+
+      - name: Create API change issue
+        if: steps.detect_changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MARKER: "<!-- api-snapshot-alert -->"
+          OUTPUT_FILE: ${{ inputs.output-file }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          COMMIT_SHA: ${{ steps.commit_snapshot.outputs.commit_sha }}
+          PREVIOUS_SHA: ${{ steps.commit_snapshot.outputs.previous_sha }}
+          SNAPSHOT_DATE: ${{ steps.commit_snapshot.outputs.snapshot_date }}
+        run: |
+          commit_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${COMMIT_SHA}"
+          diff_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${PREVIOUS_SHA}...${COMMIT_SHA}"
+          title="Browsertrix API snapshot changed"
+
+          body_file="$(mktemp)"
+          {
+            printf '%s\n' "${MARKER}"
+            printf '%s\n' "Browsertrix API snapshot changed in \`${OUTPUT_FILE}\`."
+            printf '\n'
+            printf '%s\n' "- Date (UTC): ${SNAPSHOT_DATE}"
+            printf '%s\n' "- Repository: ${GITHUB_REPOSITORY}"
+            printf '%s\n' "- Workflow run: ${RUN_URL}"
+            printf '%s\n' "- Commit: ${COMMIT_SHA} (${commit_url})"
+            printf '%s\n' "- Diff: ${diff_url}"
+          } > "${body_file}"
+
+          gh issue create --title "${title}" --body-file "${body_file}"
