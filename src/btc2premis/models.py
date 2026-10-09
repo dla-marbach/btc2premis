@@ -87,6 +87,11 @@ class Crawl:
         return self.raw.get("config") or {}
 
     @property
+    def config_revision(self) -> int | None:
+        """Revision of the crawl config (``rev``) the crawl was started with."""
+        return self.raw.get("cid_rev")
+
+    @property
     def user_name(self) -> str | None:
         return self.raw.get("userName")
 
@@ -99,8 +104,7 @@ class Crawl:
 class CrawlWorkflow:
     """A Browsertrix crawl config (``crawlconfig``) with all its crawls.
 
-    Called "Workflow" in the Browsertrix web UI (and in the ``crawlWorkflow``/
-    ``workflowId`` PREMIS extension elements produced by this tool).
+    Called "Workflow" in the Browsertrix web UI.
     """
 
     raw: dict[str, Any]
@@ -120,3 +124,8 @@ class CrawlWorkflow:
     @property
     def config(self) -> dict[str, Any]:
         return self.raw.get("config") or {}
+
+    @property
+    def revision(self) -> int | None:
+        """Current revision of the crawl config (``rev``)."""
+        return self.raw.get("rev")

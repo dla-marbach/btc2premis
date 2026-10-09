@@ -19,8 +19,7 @@ web UI in places:
 
 * **Crawl config** (`cid`) – the reusable configuration (scope, schedule,
   browser settings, ...) that defines what and how to crawl. The Browsertrix
-  web UI (and the `crawlWorkflow`/`workflowId` elements of the PREMIS output,
-  see below) call this a **"Workflow"**.
+  web UI calls this a **"Workflow"**.
 * **Crawl** – a single run (harvesting run) of a crawl config, commonly with
   its resulting WACZ file(s). The Browsertrix web UI lists these as
   **"Crawl Runs"** or **"Archived Items"**, if successful.
@@ -30,7 +29,7 @@ web UI in places:
 Details are documented in [`docs/README.md`](docs/README.md).
 
 > **Note:** The PREMIS mapping is preliminary and still work in progress;
-> element names and the custom `btrix` namespace may still change.
+> element names and JSON keys may still change.
 
 ## Installation
 
@@ -184,12 +183,17 @@ combined-json`). PREMIS excerpt:
   <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>
   <premis:eventDetailInformation>
     <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.6.1 via Browsertrix; ...</premis:eventDetail>
-    <premis:eventDetailExtension>
-      <btrix:crawlConfiguration workflowId="497f6eca-..." crawlId="a1b2c3d4-...">
-        <btrix:scope>
-          <btrix:scopeType>prefix</btrix:scopeType>
-          <btrix:startUrl>https://example.org/</btrix:startUrl>
-          ...
+  </premis:eventDetailInformation>
+  <premis:eventDetailInformation>
+    <premis:eventDetail><![CDATA[{
+  "crawlConfigId": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "crawlConfigRevision": 2,
+  "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000001",
+  "settings": {
+    "scope": {
+      "scopeType": "prefix",
+      "startUrl": "https://example.org/",
+      ...
 ```
 
 ## Development

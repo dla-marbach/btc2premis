@@ -8,16 +8,13 @@ WACZ/WARC files are described in terms of format registries.
 
 See ``docs/README.md`` for the documented mapping table.
 
-Note: this mapping is preliminary and still work in progress; element names
-and the ``btrix`` namespace below may still change.
+Note: this mapping is preliminary and still work in progress; the JSON keys
+below may still change.
 """
 
 from __future__ import annotations
 
 from typing import Any
-
-#: Placeholder namespace; the mapping is preliminary and this URI is not final.
-BTRIX_NS = "http://example.com/ns/browsertrix/v1"
 
 #: Format descriptions per file extension, in the order they are checked.
 FORMATS: list[tuple[str, dict[str, Any]]] = [
@@ -46,6 +43,9 @@ FORMATS: list[tuple[str, dict[str, Any]]] = [
         },
     ),
 ]
+
+#: Crawl config fields that only describe its current revision.
+REVISION_FIELDS = ("rev", "modified", "modifiedByName")
 
 DEFAULT_FORMAT: dict[str, Any] = {
     "name": "unknown",
@@ -283,9 +283,37 @@ def crawl_settings(
 
     Values reported by the crawl endpoint win; fields that the crawl endpoint
     does not expose (for example ``crawlTimeout`` or ``schedule``) fall back to
-    the crawl config so that the record stays complete.
+    the crawl config so that the record stays complete. Fields that describe
+    only the current revision of the crawl config (``rev``, ``modified``,
+    ``modifiedByName``) are not carried over; the revision of the crawl is
+    ``cid_rev``.
     """
-    meta = dict(workflow)
+    meta = {key: value for key, value in workflow.items() if key not in REVISION_FIELDS}
     meta.update({key: value for key, value in crawl.items() if value not in (None, "", [])})
     config = crawl.get("config") or workflow.get("config") or {}
     return settings_groups(config, meta, **names)
+
+
+def inherited_settings(
+    crawl: dict[str, Any], workflow: dict[str, Any], **names: dict[str, str]
+) -> list[str]:
+    """Settings of :func:`crawl_settings` that were taken from the crawl config.
+
+    Returned as ``group.key`` paths. These values describe the crawl config as
+    it is *now*, which is only guaranteed to match the crawl if the crawl ran
+    with the current revision of the crawl config.
+    """
+    own = settings_groups(crawl.get("config") or {}, crawl, **names)
+    merged = crawl_settings(crawl, workflow, **names)
+    return [
+        f"{group}.{key}"
+        for group, values in merged.items()
+        for key in values
+        if key not in own.get(group, {})
+    ]
+
+
+def seed_urls(config: dict[str, Any]) -> list[str]:
+    """All seed URLs of a ``RawCrawlConfig`` payload, in their configured order."""
+    urls = [_seed_entry(seed).get("url") for seed in _as_list_of_dicts(config.get("seeds"))]
+    return [str(url) for url in urls if url]

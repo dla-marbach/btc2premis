@@ -5,7 +5,9 @@ from __future__ import annotations
 from btc2premis.mapping import (
     crawl_settings,
     format_for_filename,
+    inherited_settings,
     parse_crawler_image,
+    seed_urls,
     workflow_settings,
 )
 from tests.conftest import load_fixture
@@ -83,6 +85,36 @@ def test_crawl_settings_prefer_run_values_and_fall_back_to_workflow() -> None:
     # not exposed per run, therefore taken from the workflow
     assert settings["limits"]["crawlTimeoutSeconds"] == 86400
     assert settings["scheduling"]["crawlSchedule"] == "0 3 * * 1"
+
+
+def test_crawl_settings_do_not_inherit_current_revision_fields() -> None:
+    config = load_fixture("crawlconfig.json")
+    crawl = load_fixture("crawls.json")["items"][0]  # ran with revision 2, current is 3
+
+    metadata = crawl_settings(crawl, config)["metadata"]
+
+    assert "revision" not in metadata
+    assert "modified" not in metadata
+    assert metadata["created"] == "2025-01-15T09:12:00Z"
+
+
+def test_inherited_settings_lists_fallback_values() -> None:
+    config = load_fixture("crawlconfig.json")
+    crawl = load_fixture("crawls.json")["items"][0]
+
+    inherited = inherited_settings(crawl, config)
+
+    assert "limits.crawlTimeoutSeconds" in inherited
+    assert "scheduling.crawlSchedule" in inherited
+    assert "scope.maxDepth" not in inherited
+    assert "browserSettings.crawlerImage" not in inherited
+
+
+def test_seed_urls() -> None:
+    config = load_fixture("crawlconfig.json")["config"]
+    assert seed_urls(config) == ["https://example.org/", "https://example.org/extra"]
+    assert seed_urls({"seeds": ["https://example.net/"]}) == ["https://example.net/"]
+    assert seed_urls({}) == []
 
 
 def test_settings_omit_empty_values() -> None:
