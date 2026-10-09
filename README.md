@@ -150,7 +150,7 @@ affected profile ID and exports the PREMIS document without the
 | `GET /api/orgs/{oid}` | Organization name (PREMIS agent) | [`tests/fixtures/org.json`](tests/fixtures/org.json) |
 | `GET /api/orgs/{oid}/crawlconfigs` | List of crawl configs (`--list`) | [`tests/fixtures/crawlconfig.json`](tests/fixtures/crawlconfig.json) (wrapped in a paginated list) |
 | `GET /api/orgs/{oid}/crawlconfigs/{cid}` | Current configuration of a crawl config | [`tests/fixtures/crawlconfig.json`](tests/fixtures/crawlconfig.json) |
-| `GET /api/orgs/{oid}/crawls?cid={cid}` | Crawls including `image` (actual crawler version) | [`tests/fixtures/crawls.json`](tests/fixtures/crawls.json) |
+| `GET /api/orgs/{oid}/crawls?cid={cid}` | Crawls that ran using the crawl config (including the revision `cid_rev` and the Docker container image `image` of the crawler, i.e. the actual crawler version) | [`tests/fixtures/crawls.json`](tests/fixtures/crawls.json) |
 | `GET /api/orgs/{oid}/crawls/{id}/replay.json` | WACZ files with name, hash, and size | [`tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json`](tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json) |
 | `GET /api/orgs/{oid}/profiles/{id}` | Browser profile name | [`tests/fixtures/profile.json`](tests/fixtures/profile.json) |
 | `GET /api/orgs/{oid}/collections/{id}` | Collection name | [`tests/fixtures/collection.json`](tests/fixtures/collection.json) |
