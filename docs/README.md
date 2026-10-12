@@ -15,7 +15,7 @@ PREMIS document is created with the following structure:
 | PREMIS element | Content | Source |
 | --- | --- | --- |
 | `object xsi:type="premis:intellectualEntity"` | The **website** harvested by the crawl config, with all known seed URLs | `GET /api/orgs/{oid}/crawlconfigs/{cid}`, crawls |
-| `object xsi:type="premis:file"` | The **current revision** of the crawl config, as JSON | `GET /api/orgs/{oid}/crawlconfigs/{cid}` |
+| `object xsi:type="premis:file"` | The **crawl config**, with its current revision as JSON | `GET /api/orgs/{oid}/crawlconfigs/{cid}` |
 | `object xsi:type="premis:representation"` | A crawl (one capture of the website) | `GET /api/orgs/{oid}/crawls?cid={cid}` |
 | `object xsi:type="premis:file"` | A WACZ file of a crawl | `GET /api/orgs/{oid}/crawls/{crawlId}/replay.json` (`resources`) |
 | `event` (`eventType` = `capture`) | A crawl, including the configuration in effect for that crawl | Crawl + crawl config |
@@ -26,35 +26,44 @@ Relationships:
 * Representation *represents* → website (with `relatedEventIdentifier` → its
   capture event), *has part* → each WACZ file
 * WACZ file *is part of* → representation
-* Event `linkingObjectIdentifier` → website (`source`), crawl config
-  (`source`, only if the crawl ran with the exported revision, see below),
+* Event `linkingObjectIdentifier` → website and crawl config (`source`),
   representation and WACZ files (`outcome`); `linkingAgentIdentifier` → agents
 * Website, representation, WACZ files and crawl config link back to their
   events via `linkingEventIdentifier`
 
-Browsertrix keeps only the current revision (`rev`) of a crawl config; each
-crawl records the revision it was started with (`cid_rev`). The crawl config
-object therefore describes the current revision only and is linked solely to
-crawls with `cid_rev` = `rev`. Earlier revisions are not invented as PREMIS
-objects; the configuration of every crawl is documented in its event instead
-(see [section 6](#6-crawl-configuration-json)).
+The crawl config object stands for the crawl config as a whole and is linked to
+all of its crawls, just as every crawl refers to its crawl config via `cid`.
+Browsertrix, however, keeps only the current revision (`rev`) of a crawl
+config; each crawl records the revision it was started with (`cid_rev`). The
+JSON of the crawl config object therefore shows the current revision only.
+Earlier revisions are not invented as PREMIS objects; the configuration of
+every crawl is documented in its event instead (see
+[section 6](#6-crawl-configuration-json)).
+
+The role `source` for the crawl config is preliminary: the crawl config is an
+input of the crawl rather than its source in the sense the website is, but the
+PREMIS vocabulary for `eventRelatedObjectRole` only offers `source` and
+`outcome`. A role such as `input` is still under discussion.
 
 ## 2. Identifiers
 
-Only the type `UUID` is used; values are prefixed with an underscore (`_<uuid>`)
-so they can be used as `xsd:ID`.
+All identifiers have the type `local`. Their values consist of a prefix naming
+the kind of entity and the Browsertrix ID of the underlying record, so they
+stay readable and can be traced back to Browsertrix directly:
 
-| Object | Value |
-| --- | --- |
-| Website | `_` + UUIDv5 from (`website`, `cid`) |
-| Crawl config | `_` + UUIDv5 from (`crawlconfig`, `cid`, `rev`) |
-| Representation (crawl) | `_` + crawl ID |
-| File | `_` + UUIDv5 from (`file`, crawl ID, filename) |
-| Event | `_` + UUIDv5 from (`event`, crawl ID) |
-| Agent | `_` + org ID or UUIDv5 from name/version |
+| Object | Value | Example |
+| --- | --- | --- |
+| Website | `web-` + `cid` | `web-497f6eca-...` |
+| Crawl config | `cfg-` + `cid` | `cfg-497f6eca-...` |
+| Representation (crawl) | `crawl-` + crawl ID | `crawl-a1b2c3d4-...` |
+| WACZ file | `wacz-` + crawl ID + `-` + number of the file (from 1, in the order of `replay.json`) | `wacz-a1b2c3d4-...-1` |
+| Event | `event-` + crawl ID | `event-a1b2c3d4-...` |
+| Agent | `agent-` + org ID or user ID, otherwise name (and version) | `agent-browsertrix-crawler-1.6.1` |
 
-Derived UUIDs are deterministic: repeated runs of `btc2premis` produce byte-for-byte
-identical documents for unchanged data.
+Names in agent identifiers are reduced to lower-case letters, digits, `.` and
+`-`. Since every value starts with a letter, it can also be used as `xsd:ID`.
+The identifiers are deterministic: repeated runs of `btc2premis` produce
+byte-for-byte identical documents for unchanged data.
 
 ## 3. WACZ files (`premis:file`)
 

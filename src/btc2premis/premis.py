@@ -5,7 +5,7 @@ Browsertrix web UI):
 
 * one ``intellectualEntity`` object for the website harvested by the crawl
   config,
-* one ``file`` object for the current revision of the crawl config itself,
+* one ``file`` object for the crawl config itself (with its current revision),
 * one ``representation`` object per crawl,
 * one ``file`` object per WACZ file of a crawl,
 * one ``event`` (``capture``) per crawl carrying the settings in effect for
@@ -20,7 +20,7 @@ namespace.
 from __future__ import annotations
 
 import json
-import uuid
+import re
 from typing import Any
 from xml.etree import ElementTree as ET
 
@@ -41,12 +41,11 @@ PREMIS_SCHEMA_LOCATION = (
     "http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
 )
 
-#: Namespace used to derive stable UUIDs for objects that have no id of their own.
-BTC2PREMIS_UUID_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "https://dla-marbach.de/btc2premis")
-
-IDENTIFIER_TYPE = "UUID"
+IDENTIFIER_TYPE = "local"
 
 #: Roles of objects linked from an event (PREMIS ``eventRelatedObjectRole``).
+#: The crawl config is linked as ``source`` as well; a more specific role such
+#: as ``input`` would go beyond the controlled vocabulary.
 ROLE_SOURCE = "source"
 ROLE_OUTCOME = "outcome"
 
@@ -65,15 +64,16 @@ def _sub(parent: ET.Element, tag: str, text: Any = None) -> ET.Element:
     return element
 
 
-def identifier_value(value: str) -> str:
-    """Format an identifier according to the application profile (``_`` + UUID)."""
-    value = str(value)
-    return value if value.startswith("_") else f"_{value}"
+def local_id(prefix: str, *parts: Any) -> str:
+    """Build a readable local identifier such as ``crawl-<crawl id>``.
 
-
-def derived_uuid(*parts: str) -> str:
-    """Deterministically derive a version 5 UUID for objects without an own id."""
-    return str(uuid.uuid5(BTC2PREMIS_UUID_NAMESPACE, "|".join(parts)))
+    The prefix names the kind of entity (``web``, ``cfg``, ``crawl``,
+    ``wacz``, ``event``, ``agent``), the parts are Browsertrix ids or names.
+    Names are reduced to lower-case letters, digits, ``.`` and ``-``. Since the
+    result always starts with a letter, it can also be used as ``xsd:ID``.
+    """
+    slugs = [re.sub(r"[^a-z0-9.]+", "-", str(part).lower()).strip("-") for part in parts]
+    return "-".join([prefix, *(slug for slug in slugs if slug)])
 
 
 class PremisBuilder:
@@ -85,10 +85,8 @@ class PremisBuilder:
         self._agents: dict[str, dict[str, Any]] = {}
         self._cdata: dict[str, str] = {}
 
-        self.website_id = identifier_value(derived_uuid("website", workflow.id))
-        self.config_id = identifier_value(
-            derived_uuid("crawlconfig", workflow.id, str(workflow.revision or ""))
-        )
+        self.website_id = local_id("web", workflow.id)
+        self.config_id = local_id("cfg", workflow.id)
 
     # -- public API -------------------------------------------------------
     def build(self) -> ET.Element:
@@ -101,9 +99,7 @@ class PremisBuilder:
         )
 
         crawls = self.workflow.crawls
-        event_ids = {
-            crawl.id: identifier_value(derived_uuid("event", crawl.id)) for crawl in crawls
-        }
+        event_ids = {crawl.id: local_id("event", crawl.id) for crawl in crawls}
         objects = [
             self._website_object(crawls, event_ids),
             self._config_object(crawls, event_ids),
@@ -112,9 +108,10 @@ class PremisBuilder:
 
         for crawl in crawls:
             event_id = event_ids[crawl.id]
-            representation_id = identifier_value(crawl.id)
+            representation_id = local_id("crawl", crawl.id)
             file_objects = [
-                self._file_object(crawl, wacz, representation_id, event_id) for wacz in crawl.files
+                self._file_object(crawl, wacz, number, representation_id, event_id)
+                for number, wacz in enumerate(crawl.files, start=1)
             ]
             objects.append(self._representation_object(crawl, event_id, file_objects))
             objects.extend(file_objects)
@@ -166,7 +163,7 @@ class PremisBuilder:
         return element
 
     def _config_object(self, crawls: list[Crawl], event_ids: dict[str, str]) -> ET.Element:
-        """The current revision of the crawl config, as JSON document."""
+        """The crawl config with its current revision, as JSON document."""
         element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:file"})
         self._object_identifier(element, self.config_id)
 
@@ -196,15 +193,14 @@ class PremisBuilder:
         _sub(registry, "formatRegistryKey", "application/json")
 
         for crawl in crawls:
-            if self._uses_current_config(crawl):
-                self._linking_event(element, event_ids[crawl.id])
+            self._linking_event(element, event_ids[crawl.id])
         return element
 
     def _representation_object(
         self, crawl: Crawl, event_id: str, file_objects: list[ET.Element]
     ) -> ET.Element:
         element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:representation"})
-        self._object_identifier(element, identifier_value(crawl.id))
+        self._object_identifier(element, local_id("crawl", crawl.id))
         _sub(element, "originalName", f"{self.workflow.name or 'crawl'} ({crawl.id})")
 
         self._relationship(element, "represents", self.website_id, event_id=event_id)
@@ -215,12 +211,11 @@ class PremisBuilder:
         return element
 
     def _file_object(
-        self, crawl: Crawl, wacz: WaczFile, representation_id: str, event_id: str
+        self, crawl: Crawl, wacz: WaczFile, number: int, representation_id: str, event_id: str
     ) -> ET.Element:
+        """WACZ file ``number`` (1-based, in the order of ``replay.json``) of ``crawl``."""
         element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:file"})
-        self._object_identifier(
-            element, identifier_value(derived_uuid("file", crawl.id, wacz.name))
-        )
+        self._object_identifier(element, local_id("wacz", crawl.id, number))
 
         characteristics = _sub(element, "objectCharacteristics")
         _sub(characteristics, "compositionLevel", 0)
@@ -293,10 +288,11 @@ class PremisBuilder:
             _sub(linking, "linkingAgentIdentifierValue", agent_id)
             _sub(linking, "linkingAgentRole", role)
 
-        linked_objects = [(self.website_id, ROLE_SOURCE)]
-        if self._uses_current_config(crawl):
-            linked_objects.append((self.config_id, ROLE_SOURCE))
-        linked_objects.append((representation_id, ROLE_OUTCOME))
+        linked_objects = [
+            (self.website_id, ROLE_SOURCE),
+            (self.config_id, ROLE_SOURCE),
+            (representation_id, ROLE_OUTCOME),
+        ]
         linked_objects.extend((_identifier_of(obj), ROLE_OUTCOME) for obj in file_objects)
         for object_id, role in linked_objects:
             linking_object = _sub(element, "linkingObjectIdentifier")
@@ -358,20 +354,12 @@ class PremisBuilder:
             }
         )
 
-    def _uses_current_config(self, crawl: Crawl) -> bool:
-        """Whether ``crawl`` ran with the revision of the crawl config exported here."""
-        return (
-            self.workflow.revision is not None
-            and crawl.config_revision is not None
-            and crawl.config_revision == self.workflow.revision
-        )
-
     # -- agents -----------------------------------------------------------
     def _crawl_agents(self, crawl: Crawl) -> list[tuple[str, str]]:
         agents: list[tuple[str, str]] = []
 
         name, version, reference = parse_crawler_image(crawl.image)
-        crawler_id = identifier_value(derived_uuid("agent", "software", name, version or ""))
+        crawler_id = local_id("agent", name, version or "")
         self._register_agent(
             crawler_id,
             name=name,
@@ -381,7 +369,7 @@ class PremisBuilder:
         )
         agents.append((crawler_id, "executing program"))
 
-        service_id = identifier_value(derived_uuid("agent", "software", "Browsertrix"))
+        service_id = local_id("agent", "Browsertrix")
         self._register_agent(
             service_id,
             name="Browsertrix",
@@ -392,8 +380,7 @@ class PremisBuilder:
         agents.append((service_id, "implementer"))
 
         org_name = self.workflow.org.get("name") or "Browsertrix organization"
-        org_id = self.workflow.org.get("id") or derived_uuid("agent", "organization", org_name)
-        organization_id = identifier_value(org_id)
+        organization_id = local_id("agent", self.workflow.org.get("id") or org_name)
         self._register_agent(
             organization_id,
             name=org_name,
@@ -405,7 +392,7 @@ class PremisBuilder:
 
         if self.include_users and (crawl.user_name or crawl.user_id):
             user_key = str(crawl.user_id or crawl.user_name)
-            person_id = identifier_value(crawl.user_id or derived_uuid("agent", "person", user_key))
+            person_id = local_id("agent", user_key)
             self._register_agent(
                 person_id,
                 name=str(crawl.user_name or user_key),
@@ -415,7 +402,7 @@ class PremisBuilder:
             )
             agents.append((person_id, "operator"))
 
-        tool_id = identifier_value(derived_uuid("agent", "software", "btc2premis", __version__))
+        tool_id = local_id("agent", "btc2premis", __version__)
         self._register_agent(
             tool_id,
             name="btc2premis",

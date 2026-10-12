@@ -3,8 +3,8 @@
 <premis:premis xmlns:premis="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd">
   <premis:object xsi:type="premis:intellectualEntity">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_0637eeeb-2880-5094-ab7b-c80c018a315d</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:significantProperties>
       <premis:significantPropertiesType>seed URL</premis:significantPropertiesType>
@@ -16,18 +16,18 @@
     </premis:significantProperties>
     <premis:originalName>Beispiel-Netzliteratur</premis:originalName>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_23d80d5d-60f6-5c9d-99c4-c4475a95bb3c</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:significantProperties>
       <premis:significantPropertiesType>crawl configuration</premis:significantPropertiesType>
@@ -146,45 +146,49 @@
       </premis:format>
     </premis:objectCharacteristics>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:object xsi:type="premis:representation">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000001)</premis:originalName>
     <premis:relationship>
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>represents</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_0637eeeb-2880-5094-ab7b-c80c018a315d</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
       <premis:relatedEventIdentifier>
-        <premis:relatedEventIdentifierType>UUID</premis:relatedEventIdentifierType>
-        <premis:relatedEventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:relatedEventIdentifierValue>
+        <premis:relatedEventIdentifierType>local</premis:relatedEventIdentifierType>
+        <premis:relatedEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedEventIdentifierValue>
       </premis:relatedEventIdentifier>
     </premis:relationship>
     <premis:relationship>
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>has part</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_fa59946e-8a04-5568-a77b-69aed9dab1b2</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
     </premis:relationship>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_fa59946e-8a04-5568-a77b-69aed9dab1b2</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:objectCharacteristics>
       <premis:compositionLevel>0</premis:compositionLevel>
@@ -220,50 +224,50 @@
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>is part of</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
     </premis:relationship>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:object xsi:type="premis:representation">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000003)</premis:originalName>
     <premis:relationship>
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>represents</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_0637eeeb-2880-5094-ab7b-c80c018a315d</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
       <premis:relatedEventIdentifier>
-        <premis:relatedEventIdentifierType>UUID</premis:relatedEventIdentifierType>
-        <premis:relatedEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:relatedEventIdentifierValue>
+        <premis:relatedEventIdentifierType>local</premis:relatedEventIdentifierType>
+        <premis:relatedEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedEventIdentifierValue>
       </premis:relatedEventIdentifier>
     </premis:relationship>
     <premis:relationship>
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>has part</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_56296f4e-5e89-5172-91bb-bcd159dff552</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
     </premis:relationship>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
-      <premis:objectIdentifierType>UUID</premis:objectIdentifierType>
-      <premis:objectIdentifierValue>_56296f4e-5e89-5172-91bb-bcd159dff552</premis:objectIdentifierValue>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:objectIdentifierValue>
     </premis:objectIdentifier>
     <premis:objectCharacteristics>
       <premis:compositionLevel>0</premis:compositionLevel>
@@ -299,19 +303,19 @@
       <premis:relationshipType>structural</premis:relationshipType>
       <premis:relationshipSubType>is part of</premis:relationshipSubType>
       <premis:relatedObjectIdentifier>
-        <premis:relatedObjectIdentifierType>UUID</premis:relatedObjectIdentifierType>
-        <premis:relatedObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedObjectIdentifierValue>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
     </premis:relationship>
     <premis:linkingEventIdentifier>
-      <premis:linkingEventIdentifierType>UUID</premis:linkingEventIdentifierType>
-      <premis:linkingEventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:linkingEventIdentifierValue>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
   <premis:event>
     <premis:eventIdentifier>
-      <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
-      <premis:eventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:eventIdentifierValue>
+      <premis:eventIdentifierType>local</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventIdentifierValue>
     </premis:eventIdentifier>
     <premis:eventType>capture</premis:eventType>
     <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>
@@ -429,45 +433,50 @@
       </premis:eventOutcomeDetail>
     </premis:eventOutcomeInformation>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_31ca2581-f22e-5e4a-b66b-a190f2c0f166</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix-crawler-1.6.1</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-btc2premis-0.1.0</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_0637eeeb-2880-5094-ab7b-c80c018a315d</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>source</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_fa59946e-8a04-5568-a77b-69aed9dab1b2</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
   </premis:event>
   <premis:event>
     <premis:eventIdentifier>
-      <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
-      <premis:eventIdentifierValue>_5114ba92-d295-5a14-8580-2c8e5cbcbd99</premis:eventIdentifierValue>
+      <premis:eventIdentifierType>local</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:eventIdentifierValue>
     </premis:eventIdentifier>
     <premis:eventType>capture</premis:eventType>
     <premis:eventDateTime>2025-06-09T03:00:07Z</premis:eventDateTime>
@@ -585,50 +594,50 @@
       </premis:eventOutcomeDetail>
     </premis:eventOutcomeInformation>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_eee21708-6724-5571-b57d-ecca2a1f8e27</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix-crawler-1.7.0</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingAgentIdentifier>
-      <premis:linkingAgentIdentifierType>UUID</premis:linkingAgentIdentifierType>
-      <premis:linkingAgentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-btc2premis-0.1.0</premis:linkingAgentIdentifierValue>
       <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
     </premis:linkingAgentIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_0637eeeb-2880-5094-ab7b-c80c018a315d</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>source</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_23d80d5d-60f6-5c9d-99c4-c4475a95bb3c</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>source</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
-      <premis:linkingObjectIdentifierType>UUID</premis:linkingObjectIdentifierType>
-      <premis:linkingObjectIdentifierValue>_56296f4e-5e89-5172-91bb-bcd159dff552</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
   </premis:event>
   <premis:agent>
     <premis:agentIdentifier>
-      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_31ca2581-f22e-5e4a-b66b-a190f2c0f166</premis:agentIdentifierValue>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix-crawler-1.6.1</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>Browsertrix Crawler</premis:agentName>
     <premis:agentType>software</premis:agentType>
@@ -637,8 +646,8 @@
   </premis:agent>
   <premis:agent>
     <premis:agentIdentifier>
-      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_2e3a7993-23e7-5e47-9ad8-e9366c3b8160</premis:agentIdentifierValue>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>Browsertrix</premis:agentName>
     <premis:agentType>software</premis:agentType>
@@ -646,16 +655,16 @@
   </premis:agent>
   <premis:agent>
     <premis:agentIdentifier>
-      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:agentIdentifierValue>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>DLA Marbach</premis:agentName>
     <premis:agentType>organization</premis:agentType>
   </premis:agent>
   <premis:agent>
     <premis:agentIdentifier>
-      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_e9b4f875-343e-54ff-819e-e8e8c272500a</premis:agentIdentifierValue>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-btc2premis-0.1.0</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>btc2premis</premis:agentName>
     <premis:agentType>software</premis:agentType>
@@ -664,8 +673,8 @@
   </premis:agent>
   <premis:agent>
     <premis:agentIdentifier>
-      <premis:agentIdentifierType>UUID</premis:agentIdentifierType>
-      <premis:agentIdentifierValue>_eee21708-6724-5571-b57d-ecca2a1f8e27</premis:agentIdentifierValue>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix-crawler-1.7.0</premis:agentIdentifierValue>
     </premis:agentIdentifier>
     <premis:agentName>Browsertrix Crawler</premis:agentName>
     <premis:agentType>software</premis:agentType>

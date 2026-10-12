@@ -176,8 +176,8 @@ combined-json`). PREMIS excerpt:
 ```xml
 <premis:event>
   <premis:eventIdentifier>
-    <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
-    <premis:eventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:eventIdentifierValue>
+    <premis:eventIdentifierType>local</premis:eventIdentifierType>
+    <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventIdentifierValue>
   </premis:eventIdentifier>
   <premis:eventType>capture</premis:eventType>
   <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>

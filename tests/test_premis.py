@@ -8,7 +8,7 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from btc2premis.models import Crawl, CrawlWorkflow, WaczFile
-from btc2premis.premis import PREMIS_NS, build_premis, identifier_value
+from btc2premis.premis import PREMIS_NS, build_premis, local_id
 from tests.conftest import load_fixture
 
 PREMIS = f"{{{PREMIS_NS}}}"
@@ -81,12 +81,32 @@ def test_one_document_contains_all_runs_as_events() -> None:
     assert events[0].findtext(f"{PREMIS}eventDateTime") == "2025-06-02T03:00:04Z"
 
 
-def test_identifiers_follow_application_profile() -> None:
+def test_identifiers_are_prefixed_local_ids() -> None:
     root = parse()
-    for identifier in root.iter(f"{PREMIS}objectIdentifierValue"):
-        assert identifier.text.startswith("_")
-    for identifier in root.iter(f"{PREMIS}objectIdentifierType"):
-        assert identifier.text == "UUID"
+    values = [identifier.text for identifier in root.iter(f"{PREMIS}objectIdentifierValue")]
+    assert values == [
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1",
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1",
+    ]
+    for tag in ("objectIdentifierType", "eventIdentifierType", "agentIdentifierType"):
+        assert {element.text for element in root.iter(f"{PREMIS}{tag}")} == {"local"}
+    events = [element.text for element in root.iter(f"{PREMIS}eventIdentifierValue")]
+    assert events == [
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000003",
+    ]
+    agents = [element.text for element in root.iter(f"{PREMIS}agentIdentifierValue")]
+    assert agents == [
+        "agent-browsertrix-crawler-1.6.1",
+        "agent-browsertrix",
+        "agent-05b62bc6-7787-4e27-876b-2ac41c63b14b",
+        "agent-btc2premis-0.1.0",
+        "agent-browsertrix-crawler-1.7.0",
+    ]
 
 
 def test_objects_cover_website_config_representations_and_files() -> None:
@@ -208,26 +228,26 @@ def test_effective_configuration_is_stored_in_event_detail() -> None:
     assert outcome["errorPageCount"] == 3
 
 
-def test_crawl_config_is_linked_only_to_crawls_of_its_revision() -> None:
+def test_crawl_config_is_linked_to_all_its_crawls() -> None:
     root = parse()
     website = objects_of_type(root, "premis:intellectualEntity")[0]
     config_object = objects_of_type(root, "premis:file")[0]
-    old_event, current_event = root.findall(f"{PREMIS}event")
+    events = root.findall(f"{PREMIS}event")
 
-    old_links = linked_objects(old_event)
-    current_links = linked_objects(current_event)
-    assert (object_id(website), "source") in old_links
-    assert (object_id(config_object), "source") not in old_links
-    assert (object_id(config_object), "source") in current_links
-    assert ("_a1b2c3d4-1111-4a2b-8c3d-000000000003", "outcome") in current_links
-    assert [role for _, role in current_links].count("outcome") == 2  # representation + WACZ
+    for event in events:
+        links = linked_objects(event)
+        assert (object_id(website), "source") in links
+        # also for the crawl that ran with an earlier revision of the crawl config
+        assert (object_id(config_object), "source") in links
+        assert [role for _, role in links].count("outcome") == 2  # representation + WACZ
+    assert ("crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003", "outcome") in linked_objects(events[1])
 
     config_events = [
         link.findtext(f"{PREMIS}linkingEventIdentifierValue")
         for link in config_object.findall(f"{PREMIS}linkingEventIdentifier")
     ]
     assert config_events == [
-        current_event.findtext(f"{PREMIS}eventIdentifier/{PREMIS}eventIdentifierValue")
+        event.findtext(f"{PREMIS}eventIdentifier/{PREMIS}eventIdentifierValue") for event in events
     ]
 
 
@@ -261,9 +281,11 @@ def test_output_is_deterministic() -> None:
     assert build_premis(build_workflow()) == build_premis(build_workflow())
 
 
-def test_identifier_value_prefixes_underscore_once() -> None:
-    assert identifier_value("abc") == "_abc"
-    assert identifier_value("_abc") == "_abc"
+def test_local_id_normalizes_names() -> None:
+    assert local_id("crawl", "a1b2-C3") == "crawl-a1b2-c3"
+    assert local_id("agent", "Browsertrix Crawler", "1.7.0") == "agent-browsertrix-crawler-1.7.0"
+    assert local_id("agent", "Browsertrix Crawler", "") == "agent-browsertrix-crawler"
+    assert local_id("agent", "DLA Marbach (Webarchiv)") == "agent-dla-marbach-webarchiv"
 
 
 def test_presigned_urls_are_not_exported() -> None:
