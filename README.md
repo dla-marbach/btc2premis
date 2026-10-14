@@ -293,6 +293,12 @@ export workflow above. When a change is detected, the workflow also creates a
 new GitHub issue (marker `<!-- api-snapshot-alert -->`) for each detected
 change, without labels or reuse of prior issues.
 
+Before comparing, volatile values (presigned `resources[].path`/`expireAt`,
+`org.bytesStored*`, `org.lastCrawlFinished`, `org.monthlyExecSeconds`, usage
+counters) are removed with `jq`. The list is configurable via the optional
+`ignore-paths` input (newline-separated jq path expressions, each applied as
+`del(<expr>)`); the default covers the fields above.
+
 To set this up in your own (e.g. private) repository, add a thin trigger
 workflow there that calls `api-snapshot-reusable.yml`, unchanged, from this
 repository:

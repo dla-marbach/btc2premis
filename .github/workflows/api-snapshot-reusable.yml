@@ -28,6 +28,20 @@ on:
         required: false
         type: string
         default: data/api-change-snapshot.json
+      ignore-paths:
+        description: >-
+          Newline-separated jq path expressions whose values are volatile and
+          removed (via del()) from the snapshot before it is written/compared.
+        required: false
+        type: string
+        default: |
+          .resources[]?.path
+          .resources[]?.expireAt
+          .org | .[keys_unsorted[] | select(startswith("bytesStored"))]
+          .org.lastCrawlFinished
+          .org.monthlyExecSeconds
+          .org.crawlExecSeconds
+          .org.usage
       ref:
         description: "Git ref of dla-marbach/btc2premis to check out and install"
         required: false
@@ -77,9 +91,20 @@ jobs:
         run: python -m pip install --upgrade pip && pip install ./btc2premis-src
 
       - name: Fetch reference crawl config
+        env:
+          IGNORE_PATHS: ${{ inputs.ignore-paths }}
         run: |
           mkdir -p "$(dirname "${{ inputs.output-file }}")"
-          btc2premis -c "$API_SNAPSHOT_CID" --emit combined-json > "${{ inputs.output-file }}"
+          raw="$(mktemp)"
+          btc2premis -c "$API_SNAPSHOT_CID" --emit combined-json > "$raw"
+          # Drop volatile values (presigned URLs, counters, timestamps) so only
+          # structural / stable changes show up in the diff.
+          filter='.'
+          while IFS= read -r expr; do
+            [ -n "${expr//[[:space:]]/}" ] || continue
+            filter="${filter} | del(${expr})"
+          done <<< "$IGNORE_PATHS"
+          jq -S "$filter" "$raw" > "${{ inputs.output-file }}"
 
       - name: Detect API snapshot changes
         id: detect_changes
