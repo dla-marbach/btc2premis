@@ -17,10 +17,10 @@ def test_api_snapshot_workflow_is_reusable_and_requires_cid_secret() -> None:
     assert "API_SNAPSHOT_CID:\n        required: true" in text
     assert "API_SNAPSHOT_CID: ${{ secrets.API_SNAPSHOT_CID }}" in text
     assert "3ae6704a-ac3e-4967-96d5-bad55ac8d5a2" not in text
-    assert (
-        'btc2premis -c "$API_SNAPSHOT_CID" --emit combined-json > "${{ inputs.output-file }}"'
-        in text
-    )
+    assert 'btc2premis -c "$API_SNAPSHOT_CID" --emit combined-json > "$raw"' in text
+    assert 'jq -S "$filter" "$raw" > "${{ inputs.output-file }}"' in text
+    assert ".crawls[]?.resources[]?.path" in text
+    assert ".crawls[]?.resources[]?.expireAt" in text
     assert 'git add -N -- "${{ inputs.output-file }}"' in text
     assert 'echo "changed=true" >> "$GITHUB_OUTPUT"' in text
     assert "if: steps.detect_changes.outputs.changed == 'true'" in text
