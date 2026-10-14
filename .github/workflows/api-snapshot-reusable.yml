@@ -35,8 +35,8 @@ on:
         required: false
         type: string
         default: |
-          .resources[]?.path
-          .resources[]?.expireAt
+          .crawls[]?.resources[]?.path
+          .crawls[]?.resources[]?.expireAt
           .org | .[keys_unsorted[] | select(startswith("bytesStored"))]
           .org.lastCrawlFinished
           .org.monthlyExecSeconds
