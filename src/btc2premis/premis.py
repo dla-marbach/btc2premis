@@ -100,11 +100,20 @@ class PremisBuilder:
 
         crawls = self.workflow.crawls
         event_ids = {crawl.id: local_id("event", crawl.id) for crawl in crawls}
+        name = f" '{self.workflow.name}'" if self.workflow.name else ""
+        revision = self.workflow.revision
         objects = [
-            self._website_object(crawls, event_ids),
-            self._config_object(crawls, event_ids),
+            (
+                f"Website harvested by crawl config{name}",
+                self._website_object(crawls, event_ids),
+            ),
+            (
+                f"Crawl config{name}"
+                + (f", current revision {revision}" if revision is not None else ""),
+                self._config_object(crawls, event_ids),
+            ),
         ]
-        events: list[ET.Element] = []
+        events: list[tuple[str, ET.Element]] = []
 
         for crawl in crawls:
             event_id = event_ids[crawl.id]
@@ -113,16 +122,31 @@ class PremisBuilder:
                 self._file_object(crawl, wacz, number, representation_id, event_id)
                 for number, wacz in enumerate(crawl.files, start=1)
             ]
-            objects.append(self._representation_object(crawl, event_id, file_objects))
-            objects.extend(file_objects)
-            events.append(self._event(crawl, event_id, representation_id, file_objects))
+            started = f", started {crawl.started}" if crawl.started else ""
+            objects.append(
+                (
+                    f"Crawl {crawl.id}{started}",
+                    self._representation_object(crawl, event_id, file_objects),
+                )
+            )
+            objects.extend(
+                (f"WACZ file {number} of crawl {crawl.id}", file_object)
+                for number, file_object in enumerate(file_objects, start=1)
+            )
+            events.append(
+                (
+                    f"Capture of crawl {crawl.id}",
+                    self._event(crawl, event_id, representation_id, file_objects),
+                )
+            )
 
-        for element in objects:
-            root.append(element)
-        for element in events:
-            root.append(element)
-        for element in self._agent_elements():
-            root.append(element)
+        agents = [(_agent_comment(element), element) for element in self._agent_elements()]
+
+        for section, entries in (("OBJECTS", objects), ("EVENTS", events), ("AGENTS", agents)):
+            root.append(ET.Comment(f" {'=' * 20} {section} {'=' * 20} "))
+            for comment, element in entries:
+                root.append(ET.Comment(f" {_comment_text(comment)} "))
+                root.append(element)
 
         return root
 
@@ -133,6 +157,8 @@ class PremisBuilder:
         xml = ET.tostring(root, encoding="unicode")
         for placeholder, text in self._cdata.items():
             xml = xml.replace(placeholder, _cdata_section(text), 1)
+        # separate the top-level entries (each preceded by a comment) by blank lines
+        xml = xml.replace("\n  <!--", "\n\n  <!--")
         disclaimer = (
             "<!-- This PREMIS mapping is preliminary and still work in "
             "progress; element names and JSON keys may still change. -->"
@@ -484,6 +510,20 @@ class PremisBuilder:
 def _identifier_of(object_element: ET.Element) -> str:
     value = object_element.find(f"{_q('objectIdentifier')}/{_q('objectIdentifierValue')}")
     return value.text or "" if value is not None else ""
+
+
+def _agent_comment(agent: ET.Element) -> str:
+    name = agent.findtext(_q("agentName")) or ""
+    version = agent.findtext(_q("agentVersion"))
+    agent_type = agent.findtext(_q("agentType"))
+    return f"{name} {version or ''}".strip() + (f" ({agent_type})" if agent_type else "")
+
+
+def _comment_text(text: str) -> str:
+    """Make ``text`` safe for an XML comment (no ``--``, no trailing ``-``)."""
+    while "--" in text:
+        text = text.replace("--", "- -")
+    return text.rstrip("-")
 
 
 def _prune_none(data: dict[str, Any]) -> dict[str, Any]:

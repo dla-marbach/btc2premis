@@ -298,3 +298,22 @@ def test_example_document_in_docs_is_up_to_date() -> None:
     """``docs/example-premis.xml`` is a golden file for the fixture data."""
     example = Path(__file__).resolve().parents[1] / "docs" / "example-premis.xml"
     assert example.read_text(encoding="utf-8") == build_premis(build_workflow())
+
+
+def test_entries_are_separated_by_comments_and_blank_lines() -> None:
+    document = build_premis(build_workflow())
+    for section in ("OBJECTS", "EVENTS", "AGENTS"):
+        assert f"\n\n  <!-- {'=' * 20} {section} {'=' * 20} -->\n\n" in document
+    assert (
+        "\n\n  <!-- Crawl config 'Beispiel-Netzliteratur', current revision 3 -->\n"
+        "  <premis:object" in document
+    )
+    assert "<!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->" in document
+
+
+def test_comments_stay_well_formed_for_unusual_names() -> None:
+    workflow = build_workflow()
+    workflow.raw["name"] = "Test -- Website-"
+    document = build_premis(workflow)
+    ET.fromstring(document)
+    assert "<!-- Crawl config 'Test - - Website-', current revision 3 -->" in document

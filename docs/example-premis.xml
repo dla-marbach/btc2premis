@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This PREMIS mapping is preliminary and still work in progress; element names and JSON keys may still change. -->
 <premis:premis xmlns:premis="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd">
+
+  <!-- ==================== OBJECTS ==================== -->
+
+  <!-- Website harvested by crawl config 'Beispiel-Netzliteratur' -->
   <premis:object xsi:type="premis:intellectualEntity">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -24,6 +28,8 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- Crawl config 'Beispiel-Netzliteratur', current revision 3 -->
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -154,6 +160,8 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- Crawl a1b2c3d4-1111-4a2b-8c3d-000000000001, started 2025-06-02T03:00:04Z -->
   <premis:object xsi:type="premis:representation">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -185,6 +193,8 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- WACZ file 1 of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -233,6 +243,8 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- Crawl a1b2c3d4-1111-4a2b-8c3d-000000000003, started 2025-06-09T03:00:07Z -->
   <premis:object xsi:type="premis:representation">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -264,6 +276,8 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- WACZ file 1 of crawl a1b2c3d4-1111-4a2b-8c3d-000000000003 -->
   <premis:object xsi:type="premis:file">
     <premis:objectIdentifier>
       <premis:objectIdentifierType>local</premis:objectIdentifierType>
@@ -312,6 +326,10 @@
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
+
+  <!-- ==================== EVENTS ==================== -->
+
+  <!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->
   <premis:event>
     <premis:eventIdentifier>
       <premis:eventIdentifierType>local</premis:eventIdentifierType>
@@ -473,6 +491,8 @@
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
   </premis:event>
+
+  <!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000003 -->
   <premis:event>
     <premis:eventIdentifier>
       <premis:eventIdentifierType>local</premis:eventIdentifierType>
@@ -634,6 +654,10 @@
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
   </premis:event>
+
+  <!-- ==================== AGENTS ==================== -->
+
+  <!-- Browsertrix Crawler 1.6.1 (software) -->
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>local</premis:agentIdentifierType>
@@ -644,6 +668,8 @@
     <premis:agentVersion>1.6.1</premis:agentVersion>
     <premis:agentNote>container image: docker.io/webrecorder/browsertrix-crawler:1.6.1</premis:agentNote>
   </premis:agent>
+
+  <!-- Browsertrix (software) -->
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>local</premis:agentIdentifierType>
@@ -653,6 +679,8 @@
     <premis:agentType>software</premis:agentType>
     <premis:agentNote>crawl management service by Webrecorder</premis:agentNote>
   </premis:agent>
+
+  <!-- DLA Marbach (organization) -->
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>local</premis:agentIdentifierType>
@@ -661,6 +689,8 @@
     <premis:agentName>DLA Marbach</premis:agentName>
     <premis:agentType>organization</premis:agentType>
   </premis:agent>
+
+  <!-- btc2premis 0.1.0 (software) -->
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>local</premis:agentIdentifierType>
@@ -671,6 +701,8 @@
     <premis:agentVersion>0.1.0</premis:agentVersion>
     <premis:agentNote>created this PREMIS record from the Browsertrix API</premis:agentNote>
   </premis:agent>
+
+  <!-- Browsertrix Crawler 1.7.0 (software) -->
   <premis:agent>
     <premis:agentIdentifier>
       <premis:agentIdentifierType>local</premis:agentIdentifierType>

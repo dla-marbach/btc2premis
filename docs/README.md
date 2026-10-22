@@ -21,6 +21,11 @@ PREMIS document is created with the following structure:
 | `event` (`eventType` = `capture`) | A crawl, including the configuration in effect for that crawl | Crawl + crawl config |
 | `agent` | Browsertrix Crawler (with actual version), Browsertrix, organization, optional person, `btc2premis` | Crawl, org |
 
+For orientation, the document is divided into the sections `OBJECTS`, `EVENTS`
+and `AGENTS` by comments; each entry is preceded by a short comment (for
+example `<!-- Capture of crawl a1b2c3d4-... -->`) and separated from the next
+one by a blank line.
+
 Relationships:
 
 * Representation *represents* → website (with `relatedEventIdentifier` → its
