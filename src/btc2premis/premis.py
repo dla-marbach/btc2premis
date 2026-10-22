@@ -5,6 +5,9 @@ Browsertrix web UI):
 
 * one ``intellectualEntity`` object for the website harvested by the crawl
   config,
+* per Browsertrix collection referenced by a crawl, one ``intellectualEntity``
+  object for the collection of websites that ``includes`` the website, and one
+  ``representation`` object for the collection itself,
 * one ``file`` object for the crawl config itself (with its current revision),
 * one ``representation`` object per crawl,
 * one ``file`` object per WACZ file of a crawl,
@@ -26,6 +29,7 @@ from xml.etree import ElementTree as ET
 
 from btc2premis import __version__
 from btc2premis.mapping import (
+    collection_metadata,
     crawl_settings,
     format_for_filename,
     inherited_settings,
@@ -67,8 +71,8 @@ def _sub(parent: ET.Element, tag: str, text: Any = None) -> ET.Element:
 def local_id(prefix: str, *parts: Any) -> str:
     """Build a readable local identifier such as ``crawl-<crawl id>``.
 
-    The prefix names the kind of entity (``web``, ``cfg``, ``crawl``,
-    ``wacz``, ``event``, ``agent``), the parts are Browsertrix ids or names.
+    The prefix names the kind of entity (``web``, ``webcoll``, ``coll``,
+    ``cfg``, ``crawl``, ``wacz``, ``event``, ``agent``), the parts are Browsertrix ids or names.
     Names are reduced to lower-case letters, digits, ``.`` and ``-``. Since the
     result always starts with a letter, it can also be used as ``xsd:ID``.
     """
@@ -87,6 +91,12 @@ class PremisBuilder:
 
         self.website_id = local_id("web", workflow.id)
         self.config_id = local_id("cfg", workflow.id)
+        #: Collections referenced by the crawls, in order of first reference.
+        self.collection_ids: list[str] = []
+        for crawl in workflow.crawls:
+            for coll_id in _referenced_collections(crawl):
+                if coll_id not in self.collection_ids:
+                    self.collection_ids.append(coll_id)
 
     # -- public API -------------------------------------------------------
     def build(self) -> ET.Element:
@@ -107,12 +117,29 @@ class PremisBuilder:
                 f"Website harvested by crawl config{name}",
                 self._website_object(crawls, event_ids),
             ),
+        ]
+        for coll_id in self.collection_ids:
+            coll_name = self._collection_name(coll_id)
+            coll_label = f" '{coll_name}'" if coll_name else f" {coll_id}"
+            objects.append(
+                (
+                    f"Collection of websites{coll_label}",
+                    self._website_collection_object(coll_id, crawls, event_ids),
+                )
+            )
+            objects.append(
+                (
+                    f"Collection{coll_label}",
+                    self._collection_object(coll_id, crawls, event_ids),
+                )
+            )
+        objects.append(
             (
                 f"Crawl config{name}"
                 + (f", current revision {revision}" if revision is not None else ""),
                 self._config_object(crawls, event_ids),
-            ),
-        ]
+            )
+        )
         events: list[tuple[str, ET.Element]] = []
 
         for crawl in crawls:
@@ -184,9 +211,72 @@ class PremisBuilder:
         if self.workflow.name:
             _sub(element, "originalName", self.workflow.name)
 
+        for coll_id in self.collection_ids:
+            self._relationship(element, "is included in", local_id("webcoll", coll_id))
+
         for crawl in crawls:
             self._linking_event(element, event_ids[crawl.id])
         return element
+
+    def _website_collection_object(
+        self, coll_id: str, crawls: list[Crawl], event_ids: dict[str, str]
+    ) -> ET.Element:
+        """The websites of a Browsertrix collection, as intellectual entity.
+
+        Only the website of this crawl config is known here; the same entity
+        appears (with the same identifier) in the documents of all crawl
+        configs whose crawls reference the collection.
+        """
+        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:intellectualEntity"})
+        self._object_identifier(element, local_id("webcoll", coll_id))
+
+        metadata = collection_metadata(self.workflow.collections.get(coll_id) or {})
+        if metadata:
+            significant = _sub(element, "significantProperties")
+            _sub(significant, "significantPropertiesType", "collection metadata")
+            self._json(
+                _sub(significant, "significantPropertiesValue"),
+                {"collectionId": coll_id, **metadata},
+            )
+        name = self._collection_name(coll_id)
+        if name:
+            _sub(element, "originalName", name)
+
+        self._relationship(element, "includes", self.website_id)
+
+        for crawl in crawls:
+            if coll_id in _referenced_collections(crawl):
+                self._linking_event(element, event_ids[crawl.id])
+        return element
+
+    def _collection_object(
+        self, coll_id: str, crawls: list[Crawl], event_ids: dict[str, str]
+    ) -> ET.Element:
+        """A Browsertrix collection, as representation of its collection of websites.
+
+        Its parts are the WACZ files of the crawls that belong to the
+        collection (``collectionIds``), as far as they are part of this
+        document.
+        """
+        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:representation"})
+        self._object_identifier(element, local_id("coll", coll_id))
+        name = self._collection_name(coll_id)
+        if name:
+            _sub(element, "originalName", name)
+
+        self._relationship(element, "represents", local_id("webcoll", coll_id))
+        members = [crawl for crawl in crawls if coll_id in crawl.collection_ids]
+        for crawl in members:
+            for number in range(1, len(crawl.files) + 1):
+                self._relationship(element, "has part", local_id("wacz", crawl.id, number))
+
+        for crawl in members:
+            self._linking_event(element, event_ids[crawl.id])
+        return element
+
+    def _collection_name(self, coll_id: str) -> str | None:
+        collection = self.workflow.collections.get(coll_id) or {}
+        return collection.get("name") or self.workflow.collection_names.get(coll_id)
 
     def _config_object(self, crawls: list[Crawl], event_ids: dict[str, str]) -> ET.Element:
         """The crawl config with its current revision, as JSON document."""
@@ -279,6 +369,8 @@ class PremisBuilder:
             _sub(location, "contentLocationValue", f"./{wacz.name}")
 
         self._relationship(element, "is part of", representation_id)
+        for coll_id in crawl.collection_ids:
+            self._relationship(element, "is part of", local_id("coll", coll_id))
         self._linking_event(element, event_id)
         return element
 
@@ -316,8 +408,13 @@ class PremisBuilder:
 
         linked_objects = [
             (self.website_id, ROLE_SOURCE),
+            *(
+                (local_id("webcoll", coll_id), ROLE_SOURCE)
+                for coll_id in _referenced_collections(crawl)
+            ),
             (self.config_id, ROLE_SOURCE),
             (representation_id, ROLE_OUTCOME),
+            *((local_id("coll", coll_id), ROLE_OUTCOME) for coll_id in crawl.collection_ids),
         ]
         linked_objects.extend((_identifier_of(obj), ROLE_OUTCOME) for obj in file_objects)
         for object_id, role in linked_objects:
@@ -512,6 +609,14 @@ def _identifier_of(object_element: ET.Element) -> str:
     return value.text or "" if value is not None else ""
 
 
+def _referenced_collections(crawl: Crawl) -> list[str]:
+    """Collections a crawl belongs to or was deduplicated against."""
+    ids = list(crawl.collection_ids)
+    if crawl.dedupe_collection_id and crawl.dedupe_collection_id not in ids:
+        ids.append(crawl.dedupe_collection_id)
+    return ids
+
+
 def _agent_comment(agent: ET.Element) -> str:
     name = agent.findtext(_q("agentName")) or ""
     version = agent.findtext(_q("agentVersion"))
@@ -545,7 +650,10 @@ def combined_json(workflow: CrawlWorkflow) -> str:
 
     This merges the responses of several Browsertrix API endpoints (see "Used
     API endpoints" in the README): the crawl config, the crawls (each merging
-    the list-crawls entry with its replay.json response), and the organization.
+    the list-crawls entry with its replay.json response), the referenced
+    collections (reduced to the descriptive fields used for PREMIS, so that the
+    volatile collection statistics do not change the document), and the
+    organization.
     It is therefore not an unmodified single-endpoint response, but a combined
     view useful for debugging and for creating test fixtures.
     """
@@ -554,6 +662,10 @@ def combined_json(workflow: CrawlWorkflow) -> str:
             "org": workflow.org,
             "crawlconfig": workflow.raw,
             "crawls": [crawl.raw for crawl in workflow.crawls],
+            "collections": {
+                coll_id: {"id": coll_id, **collection_metadata(collection)}
+                for coll_id, collection in workflow.collections.items()
+            },
         },
         indent=2,
         ensure_ascii=False,

@@ -313,6 +313,28 @@ def inherited_settings(
     ]
 
 
+#: Descriptive fields of a collection taken over into PREMIS. Statistics and
+#: dates such as ``crawlCount``, ``totalSize``, ``dateLatest`` or ``modified``
+#: are left out: they describe the whole collection (across all crawl configs)
+#: and change whenever any crawl is added, while a PREMIS document is only
+#: regenerated when its own crawl config changes.
+COLLECTION_FIELDS = (
+    "name",
+    "slug",
+    "caption",
+    "description",
+    "tags",
+    "access",
+    "homeUrl",
+    "created",
+)
+
+
+def collection_metadata(collection: dict[str, Any]) -> dict[str, Any]:
+    """Descriptive metadata of a ``GET /collections/{id}`` payload."""
+    return _prune({key: collection.get(key) for key in COLLECTION_FIELDS})
+
+
 def seed_urls(config: dict[str, Any]) -> list[str]:
     """All seed URLs of a ``RawCrawlConfig`` payload, in their configured order."""
     urls = [_seed_entry(seed).get("url") for seed in _as_list_of_dicts(config.get("seeds"))]

@@ -15,6 +15,8 @@ PREMIS document is created with the following structure:
 | PREMIS element | Content | Source |
 | --- | --- | --- |
 | `object xsi:type="premis:intellectualEntity"` | The **website** harvested by the crawl config, with all known seed URLs | `GET /api/orgs/{oid}/crawlconfigs/{cid}`, crawls |
+| `object xsi:type="premis:intellectualEntity"` | Per referenced collection: the **collection of websites**, with the descriptive metadata of the collection | `GET /api/orgs/{oid}/collections/{id}` |
+| `object xsi:type="premis:representation"` | Per referenced collection: the **collection** itself | `GET /api/orgs/{oid}/collections/{id}`, crawls |
 | `object xsi:type="premis:file"` | The **crawl config**, with its current revision as JSON | `GET /api/orgs/{oid}/crawlconfigs/{cid}` |
 | `object xsi:type="premis:representation"` | A crawl (one capture of the website) | `GET /api/orgs/{oid}/crawls?cid={cid}` |
 | `object xsi:type="premis:file"` | A WACZ file of a crawl | `GET /api/orgs/{oid}/crawls/{crawlId}/replay.json` (`resources`) |
@@ -30,11 +32,16 @@ Relationships:
 
 * Representation *represents* → website (with `relatedEventIdentifier` → its
   capture event), *has part* → each WACZ file
-* WACZ file *is part of* → representation
-* Event `linkingObjectIdentifier` → website and crawl config (`source`),
-  representation and WACZ files (`outcome`); `linkingAgentIdentifier` → agents
-* Website, representation, WACZ files and crawl config link back to their
-  events via `linkingEventIdentifier`
+* WACZ file *is part of* → representation (and → collection, see below)
+* Collection of websites *includes* → website; website *is included in* →
+  collection of websites
+* Collection *represents* → collection of websites, *has part* → WACZ files of
+  its member crawls
+* Event `linkingObjectIdentifier` → website, collections of websites and crawl
+  config (`source`), representation, collections and WACZ files (`outcome`);
+  `linkingAgentIdentifier` → agents
+* Website, collections of websites, representations, WACZ files and crawl
+  config link back to their events via `linkingEventIdentifier`
 
 The crawl config object stands for the crawl config as a whole and is linked to
 all of its crawls, just as every crawl refers to its crawl config via `cid`.
@@ -59,6 +66,8 @@ stay readable and can be traced back to Browsertrix directly:
 | Object | Value | Example |
 | --- | --- | --- |
 | Website | `web-` + `cid` | `web-497f6eca-...` |
+| Collection of websites | `webcoll-` + collection ID | `webcoll-1a9d0e88-...` |
+| Collection | `coll-` + collection ID | `coll-1a9d0e88-...` |
 | Crawl config | `cfg-` + `cid` | `cfg-497f6eca-...` |
 | Representation (crawl) | `crawl-` + crawl ID | `crawl-a1b2c3d4-...` |
 | WACZ file | `wacz-` + crawl ID + `-` + number of the file (from 1, in the order of `replay.json`) | `wacz-a1b2c3d4-...-1` |
@@ -199,3 +208,42 @@ revision and are therefore never supplemented.
 
 Person-related information (Browsertrix user accounts) is only included with
 `--include-users`.
+
+## 7. Collections
+
+A crawl refers to Browsertrix collections in two ways:
+
+* `collectionIds` – the crawl **belongs to** the collection (for example via
+  `autoAddCollections` of its crawl config, or added manually later),
+* `config.dedupeCollId` – the crawl was **deduplicated against** the
+  collection.
+
+Every collection referenced in one of these ways by a crawl of the document
+results in
+
+* an intellectual entity `webcoll-<id>` (collection of websites) that
+  *includes* the website and carries the collection's name as `originalName`
+  and its descriptive metadata (`name`, `slug`, `caption`, `description`,
+  `tags`, `access`, `homeUrl`, `created`) as JSON in `significantProperties`
+  (type `collection metadata`),
+* a representation `coll-<id>` (the collection) that *represents* the
+  collection of websites and *has part* the WACZ files of the crawls that
+  belong to it.
+
+Events link the collection of websites as `source` for both kinds of
+reference, and the collection as `outcome` only for crawls that belong to it.
+`autoAddCollections` of the crawl config is not evaluated on its own: it only
+takes effect for future crawls, whose membership then shows up in
+`collectionIds`.
+
+Statistics and dates of a collection (`crawlCount`, `pageCount`, `totalSize`,
+`dateEarliest`, `dateLatest`, `modified`, ...) are deliberately not exported:
+they describe the collection across all crawl configs and change whenever
+any crawl is added, while a document is only regenerated when its own crawl
+config changes.
+
+**Limitation:** a collection usually spans several crawl configs, but each
+PREMIS document only covers one. The objects `webcoll-<id>` and `coll-<id>`
+therefore appear, with the same identifier, in every document whose crawls
+reference the collection, and each occurrence only lists the website and WACZ
+files of that document. Consumers have to merge these partial descriptions.

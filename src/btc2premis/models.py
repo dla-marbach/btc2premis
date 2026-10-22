@@ -92,6 +92,17 @@ class Crawl:
         return self.raw.get("cid_rev")
 
     @property
+    def collection_ids(self) -> list[str]:
+        """Collections the crawl belongs to (``collectionIds``)."""
+        return [str(item) for item in self.raw.get("collectionIds") or [] if item]
+
+    @property
+    def dedupe_collection_id(self) -> str | None:
+        """Collection the crawl was deduplicated against (``config.dedupeCollId``)."""
+        value = self.config.get("dedupeCollId")
+        return str(value) if value else None
+
+    @property
     def user_name(self) -> str | None:
         return self.raw.get("userName")
 
@@ -112,6 +123,8 @@ class CrawlWorkflow:
     org: dict[str, Any] = field(default_factory=dict)
     profile_names: dict[str, str] = field(default_factory=dict)
     collection_names: dict[str, str] = field(default_factory=dict)
+    #: Full ``GET /collections/{id}`` payloads of the referenced collections.
+    collections: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @property
     def id(self) -> str:

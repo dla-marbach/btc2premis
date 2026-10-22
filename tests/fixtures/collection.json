@@ -1,4 +1,19 @@
 {
   "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
-  "name": "Netzliteratur"
+  "oid": "05b62bc6-7787-4e27-876b-2ac41c63b14b",
+  "name": "Netzliteratur",
+  "slug": "netzliteratur",
+  "caption": "Websites deutschsprachiger Netzliteratur",
+  "description": "Sammlung von Websites mit **Netzliteratur**, gecrawlt vom Deutschen Literaturarchiv Marbach.",
+  "access": "public",
+  "homeUrl": "https://example.org/",
+  "tags": ["netzliteratur"],
+  "created": "2025-01-10T08:00:00Z",
+  "modified": "2025-06-09T04:00:00Z",
+  "dateEarliest": "2025-06-02T03:00:04Z",
+  "dateLatest": "2025-06-02T03:38:55Z",
+  "crawlCount": 1,
+  "uploadCount": 0,
+  "pageCount": 412,
+  "totalSize": 194837122
 }

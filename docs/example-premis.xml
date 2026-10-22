@@ -19,6 +19,14 @@
       <premis:significantPropertiesValue>https://example.org/extra</premis:significantPropertiesValue>
     </premis:significantProperties>
     <premis:originalName>Beispiel-Netzliteratur</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is included in</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
     <premis:linkingEventIdentifier>
       <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
@@ -26,6 +34,76 @@
     <premis:linkingEventIdentifier>
       <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
       <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- Collection of websites 'Netzliteratur' -->
+  <premis:object xsi:type="premis:intellectualEntity">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:significantProperties>
+      <premis:significantPropertiesType>collection metadata</premis:significantPropertiesType>
+      <premis:significantPropertiesValue><![CDATA[{
+  "collectionId": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+  "name": "Netzliteratur",
+  "slug": "netzliteratur",
+  "caption": "Websites deutschsprachiger Netzliteratur",
+  "description": "Sammlung von Websites mit **Netzliteratur**, gecrawlt vom Deutschen Literaturarchiv Marbach.",
+  "tags": [
+    "netzliteratur"
+  ],
+  "access": "public",
+  "homeUrl": "https://example.org/",
+  "created": "2025-01-10T08:00:00Z"
+}]]></premis:significantPropertiesValue>
+    </premis:significantProperties>
+    <premis:originalName>Netzliteratur</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>includes</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- Collection 'Netzliteratur' -->
+  <premis:object xsi:type="premis:representation">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:originalName>Netzliteratur</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>represents</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
     </premis:linkingEventIdentifier>
   </premis:object>
 
@@ -236,6 +314,14 @@
       <premis:relatedObjectIdentifier>
         <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
         <premis:relatedObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:relatedObjectIdentifierValue>
       </premis:relatedObjectIdentifier>
     </premis:relationship>
     <premis:linkingEventIdentifier>
@@ -477,12 +563,22 @@
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
       <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
       <premis:linkingObjectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>source</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
       <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
       <premis:linkingObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>
@@ -636,6 +732,11 @@
     <premis:linkingObjectIdentifier>
       <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
       <premis:linkingObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
       <premis:linkingObjectRole>source</premis:linkingObjectRole>
     </premis:linkingObjectIdentifier>
     <premis:linkingObjectIdentifier>

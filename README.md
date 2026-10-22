@@ -153,16 +153,17 @@ affected profile ID and exports the PREMIS document without the
 | `GET /api/orgs/{oid}/crawls?cid={cid}` | Crawls that ran using the crawl config (including the revision `cid_rev` and the Docker container image `image` of the crawler, i.e. the actual crawler version) | [`tests/fixtures/crawls.json`](tests/fixtures/crawls.json) |
 | `GET /api/orgs/{oid}/crawls/{id}/replay.json` | WACZ files with name, hash, and size | [`tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json`](tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json) |
 | `GET /api/orgs/{oid}/profiles/{id}` | Browser profile name | [`tests/fixtures/profile.json`](tests/fixtures/profile.json) |
-| `GET /api/orgs/{oid}/collections/{id}` | Collection name | [`tests/fixtures/collection.json`](tests/fixtures/collection.json) |
+| `GET /api/orgs/{oid}/collections/{id}` | Collection name and descriptive metadata | [`tests/fixtures/collection.json`](tests/fixtures/collection.json) |
 
 All lists are retrieved with full pagination. The fake API used by the test
 suite (`tests/conftest.py`) serves exactly these fixture files, so each one
 documents the real shape of its endpoint's response.
 
-`--emit combined-json` merges the crawl config, organization, and crawls
+`--emit combined-json` merges the crawl config, organization, crawls
 (each crawl in turn merging its `crawls?cid=` list entry with its
-`replay.json` response) into a single JSON document per crawl config; it is
-not an unmodified single-endpoint response. See [Automated
+`replay.json` response), and the referenced collections (reduced to their
+descriptive fields, without the volatile statistics) into a single JSON
+document per crawl config; it is not an unmodified single-endpoint response. See [Automated
 export](#automated-export) for how this is used in `data/json/<cid>.json`.
 
 

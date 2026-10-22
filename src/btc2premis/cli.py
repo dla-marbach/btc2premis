@@ -230,7 +230,7 @@ class NameCache:
     """Remembers resolved and failed profile/collection lookups across crawl configs."""
 
     profiles: dict[str, str | None] = field(default_factory=dict)
-    collections: dict[str, str | None] = field(default_factory=dict)
+    collections: dict[str, dict[str, Any] | None] = field(default_factory=dict)
 
 
 def collect_workflow(
@@ -270,7 +270,7 @@ def _resolve_names(
     args: argparse.Namespace,
     name_cache: NameCache,
 ) -> None:
-    """Resolve profile and collection ids into human readable names (best effort)."""
+    """Resolve profile and collection ids into names and metadata (best effort)."""
     profile_ids = {str(workflow.raw.get("profileid") or "")}
     profile_ids.update(str(crawl.raw.get("profileid") or "") for crawl in workflow.crawls)
     for profile_id in sorted(pid for pid in profile_ids if pid):
@@ -300,21 +300,17 @@ def _resolve_names(
             if isinstance(collection, dict) and collection.get("id") and collection.get("name"):
                 workflow.collection_names[str(collection["id"])] = str(collection["name"])
     for coll_id in sorted(cid for cid in collection_ids if cid):
-        if coll_id in workflow.collection_names:
-            continue
         if coll_id not in name_cache.collections:
             try:
-                collection = client.get_collection(oid, coll_id)
+                name_cache.collections[coll_id] = client.get_collection(oid, coll_id)
             except Btc2PremisError as error:
                 log(args, f"  could not resolve collection {coll_id}: {error}")
                 name_cache.collections[coll_id] = None
-                continue
-            name_cache.collections[coll_id] = (
-                str(collection["name"]) if collection.get("name") else None
-            )
-        name = name_cache.collections[coll_id]
-        if name:
-            workflow.collection_names[coll_id] = name
+        collection = name_cache.collections[coll_id]
+        if collection:
+            workflow.collections[coll_id] = collection
+            if collection.get("name"):
+                workflow.collection_names[coll_id] = str(collection["name"])
 
 
 def read_password(args: argparse.Namespace) -> str:
