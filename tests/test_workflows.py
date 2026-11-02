@@ -106,9 +106,7 @@ def test_export_changed_creates_empty_json_source_for_empty_organization(
     )
 
     assert (output / "websites" / "json").is_dir()
-    assert calls == [
-        ["btc2premis", "--collections", "--emit", "both", "--output-dir", str(output)]
-    ]
+    assert calls == [["btc2premis", "--collections", "--emit", "both", "--output-dir", str(output)]]
 
 
 def test_export_workflow_commits_websites_and_collections() -> None:
