@@ -1,19 +1,27 @@
 """Serialization of Browsertrix metadata as PREMIS 3.0 XML.
 
-One PREMIS document is produced per crawl config (called "Workflow" in the
-Browsertrix web UI):
+Two kinds of PREMIS documents are produced.
+
+One *website document* per crawl config (called "Workflow" in the Browsertrix
+web UI), see :class:`PremisBuilder`:
 
 * one ``intellectualEntity`` object for the website harvested by the crawl
   config,
-* per Browsertrix collection referenced by a crawl, one ``intellectualEntity``
-  object for the collection of websites that ``includes`` the website, and one
-  ``representation`` object for the collection itself,
 * one ``file`` object for the crawl config itself (with its current revision),
 * one ``representation`` object per crawl,
 * one ``file`` object per WACZ file of a crawl,
 * one ``event`` (``capture``) per crawl carrying the settings in effect for
   that crawl,
 * ``agent`` entries for the crawler software, Browsertrix and the organization.
+
+The website document refers to the Browsertrix collections referenced by its
+crawls by identifier only. Each collection is described in a *collection
+document* of its own, see :class:`CollectionPremisBuilder`:
+
+* one ``intellectualEntity`` object for the collection of websites, which
+  ``includes`` the websites of all crawl configs whose crawls reference it,
+* one ``representation`` object for the collection itself, which ``has part``
+  the WACZ files of all crawls that belong to it.
 
 Browsertrix settings have no PREMIS equivalents; they are embedded as JSON in
 CDATA sections of plain PREMIS string elements instead of a custom XML
@@ -80,14 +88,92 @@ def local_id(prefix: str, *parts: Any) -> str:
     return "-".join([prefix, *(slug for slug in slugs if slug)])
 
 
-class PremisBuilder:
-    """Build a PREMIS 3.0 document for a single crawl config."""
+class _DocumentBuilder:
+    """Serialization shared by the website and the collection documents."""
+
+    def __init__(self) -> None:
+        self._cdata: dict[str, str] = {}
+
+    def build(self) -> ET.Element:
+        raise NotImplementedError
+
+    def to_string(self) -> str:
+        self._cdata = {}
+        root = self.build()
+        ET.indent(root, space="  ")
+        xml = ET.tostring(root, encoding="unicode")
+        for placeholder, text in self._cdata.items():
+            xml = xml.replace(placeholder, _cdata_section(text), 1)
+        # separate the top-level entries (each preceded by a comment) by blank lines
+        xml = xml.replace("\n  <!--", "\n\n  <!--")
+        disclaimer = (
+            "<!-- This PREMIS mapping is preliminary and still work in "
+            "progress; element names and JSON keys may still change. -->"
+        )
+        return f'<?xml version="1.0" encoding="UTF-8"?>\n{disclaimer}\n{xml}\n'
+
+    @staticmethod
+    def _root(sections: list[tuple[str, list[tuple[str, ET.Element]]]]) -> ET.Element:
+        """The ``premis`` root element with one commented block per non-empty section."""
+        root = ET.Element(
+            _q("premis"),
+            {
+                "version": "3.0",
+                f"{{{XSI_NS}}}schemaLocation": PREMIS_SCHEMA_LOCATION,
+            },
+        )
+        for section, entries in sections:
+            if not entries:
+                continue
+            root.append(ET.Comment(f" {'=' * 20} {section} {'=' * 20} "))
+            for comment, element in entries:
+                root.append(ET.Comment(f" {_comment_text(comment)} "))
+                root.append(element)
+        return root
+
+    # -- helpers ----------------------------------------------------------
+    def _json(self, element: ET.Element, data: dict[str, Any]) -> None:
+        """Set ``data`` as JSON text of ``element``, serialized as CDATA section."""
+        placeholder = f"@@btc2premis-cdata-{len(self._cdata)}@@"
+        self._cdata[placeholder] = json.dumps(data, indent=2, ensure_ascii=False)
+        element.text = placeholder
+
+    @staticmethod
+    def _object_identifier(parent: ET.Element, value: str) -> None:
+        identifier = _sub(parent, "objectIdentifier")
+        _sub(identifier, "objectIdentifierType", IDENTIFIER_TYPE)
+        _sub(identifier, "objectIdentifierValue", value)
+
+    @staticmethod
+    def _linking_event(parent: ET.Element, event_id: str) -> None:
+        linking = _sub(parent, "linkingEventIdentifier")
+        _sub(linking, "linkingEventIdentifierType", IDENTIFIER_TYPE)
+        _sub(linking, "linkingEventIdentifierValue", event_id)
+
+    @staticmethod
+    def _relationship(
+        parent: ET.Element, sub_type: str, related_id: str, *, event_id: str | None = None
+    ) -> None:
+        relationship = _sub(parent, "relationship")
+        _sub(relationship, "relationshipType", "structural")
+        _sub(relationship, "relationshipSubType", sub_type)
+        related = _sub(relationship, "relatedObjectIdentifier")
+        _sub(related, "relatedObjectIdentifierType", IDENTIFIER_TYPE)
+        _sub(related, "relatedObjectIdentifierValue", related_id)
+        if event_id:
+            related_event = _sub(relationship, "relatedEventIdentifier")
+            _sub(related_event, "relatedEventIdentifierType", IDENTIFIER_TYPE)
+            _sub(related_event, "relatedEventIdentifierValue", event_id)
+
+
+class PremisBuilder(_DocumentBuilder):
+    """Build the PREMIS 3.0 website document of a single crawl config."""
 
     def __init__(self, workflow: CrawlWorkflow, *, include_users: bool = False) -> None:
+        super().__init__()
         self.workflow = workflow
         self.include_users = include_users
         self._agents: dict[str, dict[str, Any]] = {}
-        self._cdata: dict[str, str] = {}
 
         self.website_id = local_id("web", workflow.id)
         self.config_id = local_id("cfg", workflow.id)
@@ -100,14 +186,6 @@ class PremisBuilder:
 
     # -- public API -------------------------------------------------------
     def build(self) -> ET.Element:
-        root = ET.Element(
-            _q("premis"),
-            {
-                "version": "3.0",
-                f"{{{XSI_NS}}}schemaLocation": PREMIS_SCHEMA_LOCATION,
-            },
-        )
-
         crawls = self.workflow.crawls
         event_ids = {crawl.id: local_id("event", crawl.id) for crawl in crawls}
         name = f" '{self.workflow.name}'" if self.workflow.name else ""
@@ -118,21 +196,6 @@ class PremisBuilder:
                 self._website_object(crawls, event_ids),
             ),
         ]
-        for coll_id in self.collection_ids:
-            coll_name = self._collection_name(coll_id)
-            coll_label = f" '{coll_name}'" if coll_name else f" {coll_id}"
-            objects.append(
-                (
-                    f"Collection of websites{coll_label}",
-                    self._website_collection_object(coll_id, crawls, event_ids),
-                )
-            )
-            objects.append(
-                (
-                    f"Collection{coll_label}",
-                    self._collection_object(coll_id, crawls, event_ids),
-                )
-            )
         objects.append(
             (
                 f"Crawl config{name}"
@@ -168,29 +231,7 @@ class PremisBuilder:
             )
 
         agents = [(_agent_comment(element), element) for element in self._agent_elements()]
-
-        for section, entries in (("OBJECTS", objects), ("EVENTS", events), ("AGENTS", agents)):
-            root.append(ET.Comment(f" {'=' * 20} {section} {'=' * 20} "))
-            for comment, element in entries:
-                root.append(ET.Comment(f" {_comment_text(comment)} "))
-                root.append(element)
-
-        return root
-
-    def to_string(self) -> str:
-        self._cdata = {}
-        root = self.build()
-        ET.indent(root, space="  ")
-        xml = ET.tostring(root, encoding="unicode")
-        for placeholder, text in self._cdata.items():
-            xml = xml.replace(placeholder, _cdata_section(text), 1)
-        # separate the top-level entries (each preceded by a comment) by blank lines
-        xml = xml.replace("\n  <!--", "\n\n  <!--")
-        disclaimer = (
-            "<!-- This PREMIS mapping is preliminary and still work in "
-            "progress; element names and JSON keys may still change. -->"
-        )
-        return f'<?xml version="1.0" encoding="UTF-8"?>\n{disclaimer}\n{xml}\n'
+        return self._root([("OBJECTS", objects), ("EVENTS", events), ("AGENTS", agents)])
 
     # -- objects ----------------------------------------------------------
     def _website_object(self, crawls: list[Crawl], event_ids: dict[str, str]) -> ET.Element:
@@ -217,66 +258,6 @@ class PremisBuilder:
         for crawl in crawls:
             self._linking_event(element, event_ids[crawl.id])
         return element
-
-    def _website_collection_object(
-        self, coll_id: str, crawls: list[Crawl], event_ids: dict[str, str]
-    ) -> ET.Element:
-        """The websites of a Browsertrix collection, as intellectual entity.
-
-        Only the website of this crawl config is known here; the same entity
-        appears (with the same identifier) in the documents of all crawl
-        configs whose crawls reference the collection.
-        """
-        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:intellectualEntity"})
-        self._object_identifier(element, local_id("webcoll", coll_id))
-
-        metadata = collection_metadata(self.workflow.collections.get(coll_id) or {})
-        if metadata:
-            significant = _sub(element, "significantProperties")
-            _sub(significant, "significantPropertiesType", "collection metadata")
-            self._json(
-                _sub(significant, "significantPropertiesValue"),
-                {"collectionId": coll_id, **metadata},
-            )
-        name = self._collection_name(coll_id)
-        if name:
-            _sub(element, "originalName", name)
-
-        self._relationship(element, "includes", self.website_id)
-
-        for crawl in crawls:
-            if coll_id in _referenced_collections(crawl):
-                self._linking_event(element, event_ids[crawl.id])
-        return element
-
-    def _collection_object(
-        self, coll_id: str, crawls: list[Crawl], event_ids: dict[str, str]
-    ) -> ET.Element:
-        """A Browsertrix collection, as representation of its collection of websites.
-
-        Its parts are the WACZ files of the crawls that belong to the
-        collection (``collectionIds``), as far as they are part of this
-        document.
-        """
-        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:representation"})
-        self._object_identifier(element, local_id("coll", coll_id))
-        name = self._collection_name(coll_id)
-        if name:
-            _sub(element, "originalName", name)
-
-        self._relationship(element, "represents", local_id("webcoll", coll_id))
-        members = [crawl for crawl in crawls if coll_id in crawl.collection_ids]
-        for crawl in members:
-            for number in range(1, len(crawl.files) + 1):
-                self._relationship(element, "has part", local_id("wacz", crawl.id, number))
-
-        for crawl in members:
-            self._linking_event(element, event_ids[crawl.id])
-        return element
-
-    def _collection_name(self, coll_id: str) -> str | None:
-        collection = self.workflow.collections.get(coll_id) or {}
-        return collection.get("name") or self.workflow.collection_names.get(coll_id)
 
     def _config_object(self, crawls: list[Crawl], event_ids: dict[str, str]) -> ET.Element:
         """The crawl config with its current revision, as JSON document."""
@@ -569,39 +550,100 @@ class PremisBuilder:
             elements.append(element)
         return elements
 
-    # -- helpers ----------------------------------------------------------
-    def _json(self, element: ET.Element, data: dict[str, Any]) -> None:
-        """Set ``data`` as JSON text of ``element``, serialized as CDATA section."""
-        placeholder = f"@@btc2premis-cdata-{len(self._cdata)}@@"
-        self._cdata[placeholder] = json.dumps(data, indent=2, ensure_ascii=False)
-        element.text = placeholder
 
-    @staticmethod
-    def _object_identifier(parent: ET.Element, value: str) -> None:
-        identifier = _sub(parent, "objectIdentifier")
-        _sub(identifier, "objectIdentifierType", IDENTIFIER_TYPE)
-        _sub(identifier, "objectIdentifierValue", value)
+class CollectionPremisBuilder(_DocumentBuilder):
+    """Build the PREMIS 3.0 collection document of a single Browsertrix collection.
 
-    @staticmethod
-    def _linking_event(parent: ET.Element, event_id: str) -> None:
-        linking = _sub(parent, "linkingEventIdentifier")
-        _sub(linking, "linkingEventIdentifierType", IDENTIFIER_TYPE)
-        _sub(linking, "linkingEventIdentifierValue", event_id)
+    ``workflows`` are the crawl configs to take the references to the
+    collection from; for a complete document, these are all crawl configs of
+    the organization. Websites, WACZ files and capture events are described in
+    the website documents and are only referenced here by their identifiers.
+    """
 
-    @staticmethod
-    def _relationship(
-        parent: ET.Element, sub_type: str, related_id: str, *, event_id: str | None = None
+    def __init__(
+        self, coll_id: str, collection: dict[str, Any], workflows: list[CrawlWorkflow]
     ) -> None:
-        relationship = _sub(parent, "relationship")
-        _sub(relationship, "relationshipType", "structural")
-        _sub(relationship, "relationshipSubType", sub_type)
-        related = _sub(relationship, "relatedObjectIdentifier")
-        _sub(related, "relatedObjectIdentifierType", IDENTIFIER_TYPE)
-        _sub(related, "relatedObjectIdentifierValue", related_id)
-        if event_id:
-            related_event = _sub(relationship, "relatedEventIdentifier")
-            _sub(related_event, "relatedEventIdentifierType", IDENTIFIER_TYPE)
-            _sub(related_event, "relatedEventIdentifierValue", event_id)
+        super().__init__()
+        self.coll_id = coll_id
+        self.collection = collection
+        self.workflows = sorted(workflows, key=lambda workflow: workflow.id)
+        self.website_collection_id = local_id("webcoll", coll_id)
+        self.collection_object_id = local_id("coll", coll_id)
+
+    @property
+    def name(self) -> str | None:
+        if self.collection.get("name"):
+            return str(self.collection["name"])
+        for workflow in self.workflows:
+            if workflow.collection_names.get(self.coll_id):
+                return workflow.collection_names[self.coll_id]
+        return None
+
+    def references(self) -> list[tuple[CrawlWorkflow, Crawl]]:
+        """Crawls that belong to or were deduplicated against the collection."""
+        return [
+            (workflow, crawl)
+            for workflow in self.workflows
+            for crawl in workflow.crawls
+            if self.coll_id in _referenced_collections(crawl)
+        ]
+
+    def build(self) -> ET.Element:
+        label = f" '{self.name}'" if self.name else f" {self.coll_id}"
+        objects = [
+            (f"Collection of websites{label}", self._website_collection_object()),
+            (f"Collection{label}", self._collection_object()),
+        ]
+        return self._root([("OBJECTS", objects)])
+
+    def _website_collection_object(self) -> ET.Element:
+        """The websites of the collection, as intellectual entity."""
+        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:intellectualEntity"})
+        self._object_identifier(element, self.website_collection_id)
+
+        metadata = collection_metadata(self.collection)
+        if metadata:
+            significant = _sub(element, "significantProperties")
+            _sub(significant, "significantPropertiesType", "collection metadata")
+            self._json(
+                _sub(significant, "significantPropertiesValue"),
+                {"collectionId": self.coll_id, **metadata},
+            )
+        if self.name:
+            _sub(element, "originalName", self.name)
+
+        references = self.references()
+        websites: list[str] = []
+        for workflow, _ in references:
+            if local_id("web", workflow.id) not in websites:
+                websites.append(local_id("web", workflow.id))
+        for website_id in websites:
+            self._relationship(element, "includes", website_id)
+
+        for _, crawl in references:
+            self._linking_event(element, local_id("event", crawl.id))
+        return element
+
+    def _collection_object(self) -> ET.Element:
+        """The collection, as representation of its collection of websites.
+
+        Its parts are the WACZ files of the crawls that belong to the
+        collection (``collectionIds``).
+        """
+        element = ET.Element(_q("object"), {f"{{{XSI_NS}}}type": "premis:representation"})
+        self._object_identifier(element, self.collection_object_id)
+        if self.name:
+            _sub(element, "originalName", self.name)
+
+        self._relationship(element, "represents", self.website_collection_id)
+        members = [crawl for _, crawl in self.references() if self.coll_id in crawl.collection_ids]
+        for crawl in members:
+            for number in range(1, len(crawl.files) + 1):
+                self._relationship(element, "has part", local_id("wacz", crawl.id, number))
+
+        for crawl in members:
+            self._linking_event(element, local_id("event", crawl.id))
+        return element
 
 
 def _identifier_of(object_element: ET.Element) -> str:
@@ -641,7 +683,7 @@ def _cdata_section(text: str) -> str:
 
 
 def build_premis(workflow: CrawlWorkflow, *, include_users: bool = False) -> str:
-    """Return the PREMIS 3.0 document for ``workflow`` as a string."""
+    """Return the PREMIS 3.0 website document for ``workflow`` as a string."""
     return PremisBuilder(workflow, include_users=include_users).to_string()
 
 
@@ -666,6 +708,75 @@ def combined_json(workflow: CrawlWorkflow) -> str:
                 coll_id: {"id": coll_id, **collection_metadata(collection)}
                 for coll_id, collection in workflow.collections.items()
             },
+        },
+        indent=2,
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+def referenced_collection_ids(workflows: list[CrawlWorkflow]) -> list[str]:
+    """Sorted ids of the collections that crawls of ``workflows`` belong to or
+    were deduplicated against, i.e. the collections that get a collection document."""
+    return sorted(
+        {
+            coll_id
+            for workflow in workflows
+            for crawl in workflow.crawls
+            for coll_id in _referenced_collections(crawl)
+        }
+    )
+
+
+def build_collection_premis(
+    coll_id: str, collection: dict[str, Any], workflows: list[CrawlWorkflow]
+) -> str:
+    """Return the PREMIS 3.0 collection document for collection ``coll_id``.
+
+    ``collection`` is a ``GET /collections/{id}`` payload (only its
+    descriptive fields are used), ``workflows`` are the crawl configs whose
+    crawls may reference the collection.
+    """
+    return CollectionPremisBuilder(coll_id, collection, workflows).to_string()
+
+
+def collection_combined_json(
+    coll_id: str, collection: dict[str, Any], workflows: list[CrawlWorkflow]
+) -> str:
+    """Return the data the collection document was built from as one JSON document.
+
+    It combines the descriptive fields of the ``GET /collections/{id}``
+    payload with the crawl configs and crawls referencing the collection, as
+    taken from the website documents' data. Crawls are listed with the kind of
+    reference (``member``: ``collectionIds``, ``dedupe``: ``config.dedupeCollId``)
+    and, for members, the names of their WACZ files.
+    """
+    builder = CollectionPremisBuilder(coll_id, collection, workflows)
+    references = builder.references()
+    crawlconfigs: list[dict[str, Any]] = []
+    for workflow, _ in references:
+        if not any(entry["id"] == workflow.id for entry in crawlconfigs):
+            crawlconfigs.append(_prune_none({"id": workflow.id, "name": workflow.name or None}))
+    crawls = []
+    for workflow, crawl in references:
+        member = coll_id in crawl.collection_ids
+        crawls.append(
+            _prune_none(
+                {
+                    "id": crawl.id,
+                    "cid": workflow.id,
+                    "started": crawl.started,
+                    "member": member,
+                    "dedupe": crawl.dedupe_collection_id == coll_id,
+                    "files": [wacz.name for wacz in crawl.files] if member else None,
+                }
+            )
+        )
+    return json.dumps(
+        {
+            "collection": {"id": coll_id, **collection_metadata(collection)},
+            "crawlconfigs": crawlconfigs,
+            "crawls": crawls,
         },
         indent=2,
         ensure_ascii=False,

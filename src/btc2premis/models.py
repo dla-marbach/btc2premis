@@ -142,3 +142,33 @@ class CrawlWorkflow:
     def revision(self) -> int | None:
         """Current revision of the crawl config (``rev``)."""
         return self.raw.get("rev")
+
+    @classmethod
+    def from_combined(cls, data: dict[str, Any]) -> CrawlWorkflow:
+        """Rebuild a crawl config from the output of ``--emit combined-json``.
+
+        Browser profile names are not part of that document and stay empty;
+        they are not needed for the collection documents.
+        """
+        crawls = [
+            Crawl(
+                raw=entry,
+                files=[WaczFile.from_resource(item) for item in entry.get("resources") or []],
+            )
+            for entry in data.get("crawls") or []
+        ]
+        collections = {
+            str(coll_id): dict(collection)
+            for coll_id, collection in (data.get("collections") or {}).items()
+        }
+        return cls(
+            raw=data.get("crawlconfig") or {},
+            crawls=crawls,
+            org=data.get("org") or {},
+            collection_names={
+                coll_id: str(collection["name"])
+                for coll_id, collection in collections.items()
+                if collection.get("name")
+            },
+            collections=collections,
+        )

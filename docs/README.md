@@ -13,11 +13,17 @@ The diagrams below summarize the mapping; the following sections give the
 details. All diagrams use [Mermaid](https://mermaid.js.org/) and are rendered
 directly on GitHub.
 
-### Data flow: API endpoints → PREMIS document
+### Data flow: API endpoints → PREMIS documents
 
-For each crawl config, `btc2premis` reads several API endpoints, links the
-responses and writes one PREMIS document. Collections are only looked up for
-the IDs referenced by the crawl config and its crawls.
+`btc2premis` writes two kinds of PREMIS documents into two folders (see
+[Output layout](../README.md#output-layout)):
+
+* **websites/** – one document per crawl config. `btc2premis` reads several API
+  endpoints, links the responses and describes the website, its crawls and
+  WACZ files. Collections appear only as identifier references.
+* **collections/** – one document per Browsertrix collection, assembled from
+  the combined JSON of *all* exported crawl configs plus the current collection
+  metadata (`--all` or `--collections`).
 
 ```mermaid
 flowchart LR
@@ -31,12 +37,10 @@ flowchart LR
     CO["GET /collections/{id}"]
   end
 
-  subgraph DOC["PREMIS document (one per crawl config)"]
+  subgraph WS["websites/ (one document per crawl config)"]
     direction TB
     subgraph OBJ["OBJECTS"]
       O_WEB["web-cid · Website"]
-      O_WEBCOLL["webcoll-id · Collection of websites"]
-      O_COLL["coll-id · Collection"]
       O_CFG["cfg-cid · Crawl config"]
       O_CRAWL["crawl-crawlId · Crawl"]
       O_WACZ["wacz-crawlId-n · WACZ file"]
@@ -47,6 +51,13 @@ flowchart LR
     subgraph AGT["AGENTS"]
       A_ALL["Crawler, Browsertrix, organization,<br/>optional person, btc2premis"]
     end
+    W_JSON[("websites/json/cid.json<br/>combined JSON")]
+  end
+
+  subgraph CS["collections/ (one document per collection)"]
+    direction TB
+    O_WEBCOLL["webcoll-collId · Collection of websites"]
+    O_COLL["coll-collId · Collection"]
   end
 
   CC --> O_WEB & O_CFG & E_CAP
@@ -54,10 +65,12 @@ flowchart LR
   RP --> O_WACZ
   ORG --> A_ALL
   PR -. "profile name" .-> O_CFG & E_CAP
-  CO --> O_WEBCOLL & O_COLL
   CO -. "collection name" .-> O_CFG & E_CAP
   CR -. "collectionIds,<br/>config.dedupeCollId" .-> CO
   CC -. "autoAddCollections,<br/>config.dedupeCollId" .-> CO
+  OBJ -. "identifier references<br/>webcoll-collId, coll-collId" .-> CS
+  W_JSON == "all crawl configs<br/>(--collections)" ==> CS
+  CO == "collection metadata" ==> O_WEBCOLL
 ```
 
 ### Object model
@@ -66,25 +79,25 @@ Each box is a PREMIS object; solid arrows are structural relationships
 (`relationshipSubType`), dashed arrows are links of the capture event
 (`linkingObjectRole`). Inverse relationships (`is included in`, `is part of`)
 and the `linkingEventIdentifier` back-links are omitted for readability.
-Objects with a thick border are created per referenced collection
-(see [section 7](#7-collections)).
+Objects with a thick border are described in the collection document
+`collections/…/‹collId›`, all others in the website document
+`websites/…/‹cid›`; relationships between the two documents use the shared
+identifiers (see [section 7](#7-collections)).
 
 ```mermaid
 flowchart TB
-  subgraph IE["premis:intellectualEntity"]
-    WEBCOLL["<b>webcoll-‹collId›</b><br/>Collection of websites<br/><i>name + collection metadata</i>"]
-    WEB["<b>web-‹cid›</b><br/>Website<br/><i>name + seed URLs</i>"]
+  subgraph COLLDOC["collection document collections/…/‹collId›"]
+    WEBCOLL["<b>webcoll-‹collId›</b><br/>intellectualEntity<br/>Collection of websites<br/><i>name + collection metadata</i>"]
+    COLL["<b>coll-‹collId›</b><br/>representation<br/>Collection"]
   end
-  subgraph REP["premis:representation"]
-    COLL["<b>coll-‹collId›</b><br/>Collection"]
-    CRAWL["<b>crawl-‹crawlId›</b><br/>Crawl (one capture)"]
+  subgraph WEBDOC["website document websites/…/‹cid›"]
+    WEB["<b>web-‹cid›</b><br/>intellectualEntity<br/>Website<br/><i>name + seed URLs</i>"]
+    CRAWL["<b>crawl-‹crawlId›</b><br/>representation<br/>Crawl (one capture)"]
+    WACZ["<b>wacz-‹crawlId›-‹n›</b><br/>file<br/>WACZ file<br/><i>fixity, size, format</i>"]
+    CFG["<b>cfg-‹cid›</b><br/>file<br/>Crawl config<br/><i>current revision as JSON</i>"]
+    EV(["<b>event-‹crawlId›</b><br/>eventType = capture<br/><i>effective configuration as JSON</i>"])
+    AG[/"<b>agents</b><br/>crawler, Browsertrix, organization, ..."/]
   end
-  subgraph FILE["premis:file"]
-    WACZ["<b>wacz-‹crawlId›-‹n›</b><br/>WACZ file<br/><i>fixity, size, format</i>"]
-    CFG["<b>cfg-‹cid›</b><br/>Crawl config<br/><i>current revision as JSON</i>"]
-  end
-  EV(["<b>event-‹crawlId›</b><br/>eventType = capture<br/><i>effective configuration as JSON</i>"])
-  AG[/"<b>agents</b><br/>crawler, Browsertrix, organization, ..."/]
 
   WEBCOLL -- includes --> WEB
   CRAWL -- represents --> WEB
@@ -111,24 +124,35 @@ Read in two parallel "lines":
 | Intellectual entity (what is preserved) | `web-‹cid›` – the website of the crawl config | `webcoll-‹collId›` – the collection of websites, *includes* the website |
 | Representation (one manifestation) | `crawl-‹crawlId›` – one capture, *represents* the website | `coll-‹collId›` – the Browsertrix collection, *represents* the collection of websites |
 | Files | `wacz-‹crawlId›-‹n›` – *part of* the crawl | the same WACZ files, additionally *part of* the collection |
+| Document | `websites/premis/xml/‹cid›.xml` | `collections/premis/xml/‹collId›.xml` |
 
 ## 1. Document structure
 
-For each crawl config (`cid`, called "Workflow" in the Browsertrix web UI), one
-PREMIS document is created with the following structure:
+There are two kinds of PREMIS documents.
+
+**Website document** – for each crawl config (`cid`, called "Workflow" in the
+Browsertrix web UI), one document `websites/premis/xml/<cid>.xml` with the
+following structure:
 
 | PREMIS element | Content | Source |
 | --- | --- | --- |
 | `object xsi:type="premis:intellectualEntity"` | The **website** harvested by the crawl config, with all known seed URLs | `GET /api/orgs/{oid}/crawlconfigs/{cid}`, crawls |
-| `object xsi:type="premis:intellectualEntity"` | Per referenced collection: the **collection of websites**, with the descriptive metadata of the collection | `GET /api/orgs/{oid}/collections/{id}` |
-| `object xsi:type="premis:representation"` | Per referenced collection: the **collection** itself | `GET /api/orgs/{oid}/collections/{id}`, crawls |
 | `object xsi:type="premis:file"` | The **crawl config**, with its current revision as JSON | `GET /api/orgs/{oid}/crawlconfigs/{cid}` |
 | `object xsi:type="premis:representation"` | A crawl (one capture of the website) | `GET /api/orgs/{oid}/crawls?cid={cid}` |
 | `object xsi:type="premis:file"` | A WACZ file of a crawl | `GET /api/orgs/{oid}/crawls/{crawlId}/replay.json` (`resources`) |
 | `event` (`eventType` = `capture`) | A crawl, including the configuration in effect for that crawl | Crawl + crawl config |
 | `agent` | Browsertrix Crawler (with actual version), Browsertrix, organization, optional person, `btc2premis` | Crawl, org |
 
-For orientation, the document is divided into the sections `OBJECTS`, `EVENTS`
+**Collection document** – for each Browsertrix collection referenced by any
+crawl, one document `collections/premis/xml/<collId>.xml` that contains only
+objects (the events are described in the website documents):
+
+| PREMIS element | Content | Source |
+| --- | --- | --- |
+| `object xsi:type="premis:intellectualEntity"` | The **collection of websites**, with the descriptive metadata of the collection | `GET /api/orgs/{oid}/collections/{id}`, all `websites/json/*.json` |
+| `object xsi:type="premis:representation"` | The **collection** itself | `GET /api/orgs/{oid}/collections/{id}`, all `websites/json/*.json` |
+
+For orientation, the documents are divided into the sections `OBJECTS`, `EVENTS`
 and `AGENTS` by comments; each entry is preceded by a short comment (for
 example `<!-- Capture of crawl a1b2c3d4-... -->`) and separated from the next
 one by a blank line.
@@ -147,6 +171,9 @@ Relationships:
   `linkingAgentIdentifier` → agents
 * Website, collections of websites, representations, WACZ files and crawl
   config link back to their events via `linkingEventIdentifier`
+
+Relationships and links between a website document and a collection document
+refer to objects or events of the other document by their identifier.
 
 The crawl config object stands for the crawl config as a whole and is linked to
 all of its crawls, just as every crawl refers to its crawl config via `cid`.
@@ -323,23 +350,35 @@ A crawl refers to Browsertrix collections in two ways:
 * `config.dedupeCollId` – the crawl was **deduplicated against** the
   collection.
 
-Every collection referenced in one of these ways by a crawl of the document
-results in
+Every collection referenced in one of these ways by any crawl is described
+once, in its own **collection document** `collections/premis/xml/<id>.xml`,
+with
 
 * an intellectual entity `webcoll-<id>` (collection of websites) that
-  *includes* the website and carries the collection's name as `originalName`
-  and its descriptive metadata (`name`, `slug`, `caption`, `description`,
-  `tags`, `access`, `homeUrl`, `created`) as JSON in `significantProperties`
-  (type `collection metadata`),
+  *includes* the websites of all referencing crawl configs and carries the
+  collection's name as `originalName` and its descriptive metadata (`name`,
+  `slug`, `caption`, `description`, `tags`, `access`, `homeUrl`, `created`) as
+  JSON in `significantProperties` (type `collection metadata`),
 * a representation `coll-<id>` (the collection) that *represents* the
-  collection of websites and *has part* the WACZ files of the crawls that
+  collection of websites and *has part* the WACZ files of all crawls that
   belong to it.
 
-Events link the collection of websites as `source` for both kinds of
-reference, and the collection as `outcome` only for crawls that belong to it.
-`autoAddCollections` of the crawl config is not evaluated on its own: it only
-takes effect for future crawls, whose membership then shows up in
-`collectionIds`.
+The **website documents** only refer to these objects by identifier: the
+website *is included in* `webcoll-<id>`, member WACZ files are *part of*
+`coll-<id>`, and events link the collection of websites as `source` for both
+kinds of reference and the collection as `outcome` only for crawls that belong
+to it. Conversely, the collection objects link back to these events via
+`linkingEventIdentifier`. `autoAddCollections` of the crawl config is not
+evaluated on its own: it only takes effect for future crawls, whose membership
+then shows up in `collectionIds`.
+
+Since a collection usually spans several crawl configs, the collection
+documents are assembled from the combined JSON files of *all* crawl configs in
+`websites/json/` (`btc2premis --collections`, also done by `--all`). This way
+they stay complete even when the automated export re-exports only changed
+crawl configs. Only the collection metadata is fetched fresh from the API
+(falling back to the exported metadata if that fails). Collection documents of
+collections that are no longer referenced are removed.
 
 ### How collection references are processed
 
@@ -352,27 +391,37 @@ flowchart TD
   M -- yes --> MEMBER["<b>member</b>"]
   D -- yes --> DEDUPE["<b>deduplication reference</b>"]
 
-  MEMBER --> REF["collId is a <b>referenced collection</b><br/>(document order = order of first reference)"]
+  MEMBER --> REF["collId is a <b>referenced collection</b>"]
   DEDUPE --> REF
 
-  REF --> LOOKUP["GET /collections/{collId}<br/>(cached; failures are logged, export continues)"]
-  AA --> LOOKUP2["GET /collections/{collId}<br/>name only"]
+  AA --> LOOKUP2["GET /collections/{collId}<br/>name only (cached; failures are logged)"]
+  REF --> LOOKUP2
+  LOOKUP2 --> JSON["Names only in the settings JSON<br/>(event and crawl config object)"]
 
-  LOOKUP --> WC["<b>webcoll-‹collId›</b> intellectualEntity<br/>originalName = name<br/>significantProperties 'collection metadata' =<br/>JSON of name, slug, caption, description,<br/>tags, access, homeUrl, created<br/>includes → web-‹cid›"]
-  LOOKUP --> CO["<b>coll-‹collId›</b> representation<br/>originalName = name<br/>represents → webcoll-‹collId›"]
+  subgraph WEBDOC["website document websites/…/‹cid›.xml"]
+    LINKS_ALL["web-‹cid› is included in → webcoll<br/>event links webcoll as <i>source</i>"]
+    LINKS_MEMBER["each member WACZ is part of → coll<br/>event links coll as <i>outcome</i>"]
+    JSON
+  end
+  REF --> LINKS_ALL
+  MEMBER --> LINKS_MEMBER
 
-  REF --> LINKS_ALL["web-‹cid› is included in → webcoll<br/>event links webcoll as <i>source</i><br/>webcoll links back to event"]
-  MEMBER --> LINKS_MEMBER["coll has part → WACZ files of the crawl<br/>each WACZ is part of → coll<br/>event links coll as <i>outcome</i><br/>coll links back to event"]
+  WEBDOC -- "export with --emit both" --> WJSON[("websites/json/‹cid›.json<br/>crawls with collectionIds,<br/>dedupeCollId and WACZ files")]
+  WJSON -- "all crawl configs<br/>btc2premis --collections" --> GROUP["group crawls by<br/>referenced collId"]
+  GROUP --> LOOKUP["GET /collections/{collId}<br/>(fallback: exported metadata)"]
 
-  LOOKUP2 --> JSON["Names only in the settings JSON<br/>(event and crawl config object), no objects"]
-  LOOKUP --> JSON
+  subgraph COLLDOC["collection document collections/…/‹collId›.xml"]
+    WC["<b>webcoll-‹collId›</b> intellectualEntity<br/>originalName = name<br/>significantProperties 'collection metadata' =<br/>JSON of name, slug, caption, description,<br/>tags, access, homeUrl, created<br/>includes → web-‹cid› of every referencing crawl config<br/>links → events of all referencing crawls"]
+    CO["<b>coll-‹collId›</b> representation<br/>originalName = name<br/>represents → webcoll-‹collId›<br/>has part → WACZ files of all member crawls<br/>links → events of member crawls"]
+  end
+  LOOKUP --> WC & CO
 ```
 
 Effect of each kind of reference:
 
-| Effect in the PREMIS document | Crawl is member (`collectionIds`) | Crawl deduplicated against collection (`config.dedupeCollId`) | Crawl config `autoAddCollections` only |
+| Effect | Crawl is member (`collectionIds`) | Crawl deduplicated against collection (`config.dedupeCollId`) | Crawl config `autoAddCollections` only |
 | --- | :---: | :---: | :---: |
-| Objects `webcoll-‹collId›` and `coll-‹collId›` created | ✔ | ✔ | – |
+| Collection document with `webcoll-‹collId›` and `coll-‹collId›` created | ✔ | ✔ | – |
 | `webcoll` *includes* `web`; `web` *is included in* `webcoll` | ✔ | ✔ | – |
 | Event → `webcoll` (`source`), `webcoll` → event | ✔ | ✔ | – |
 | Event → `coll` (`outcome`), `coll` → event | ✔ | – | – |
@@ -380,30 +429,40 @@ Effect of each kind of reference:
 | Settings JSON of the event | `collections.collection` | `scope.dedupeCollection` | `collections.autoAddToCollection` (inherited from the crawl config) |
 | Settings JSON of the crawl config object | – | `scope.dedupeCollection` (if set on the crawl config) | `collections.autoAddToCollection` |
 
-A collection referenced by deduplication only therefore still gets both
-objects, but its `coll-‹collId›` representation has no parts in this
-document.
+A collection referenced by deduplication only therefore still gets a
+collection document with both objects, but its `coll-‹collId›` representation
+has no parts.
+
+The combined JSON of a collection (`collections/json/<collId>.json`) contains
+the collection metadata, the referencing crawl configs and the referencing
+crawls, each marked as `member` and/or `dedupe` (WACZ files for members only).
 
 ### Example
 
-In [`example-premis.xml`](example-premis.xml), the crawl config
-`Beispiel-Netzliteratur` has two crawls that both reference the collection
-`Netzliteratur` ([`collection.json`](../tests/fixtures/collection.json)), in
-different ways: crawl `…0001` belongs to it (`collectionIds`) and was also
+In [`example-website-premis.xml`](example-website-premis.xml), the crawl
+config `Beispiel-Netzliteratur` has two crawls that both reference the
+collection `Netzliteratur` ([`collection.json`](../tests/fixtures/collection.json)),
+in different ways: crawl `…0001` belongs to it (`collectionIds`) and was also
 deduplicated against it, crawl `…0003` was only deduplicated against it
-(`config.dedupeCollId`).
+(`config.dedupeCollId`). The collection itself is described in
+[`example-collection-premis.xml`](example-collection-premis.xml)
+(combined JSON: [`example-collection-combined.json`](example-collection-combined.json)).
 
 ```mermaid
 flowchart TB
-  WEBCOLL["<b>webcoll-1a9d0e88-…</b><br/>Collection of websites 'Netzliteratur'"]
-  WEB["<b>web-497f6eca-…</b><br/>Website 'Beispiel-Netzliteratur'"]
-  COLL["<b>coll-1a9d0e88-…</b><br/>Collection 'Netzliteratur'"]
-  C1["<b>crawl-…0001</b><br/>collectionIds = [1a9d0e88-…]<br/>dedupeCollId = 1a9d0e88-…"]
-  C3["<b>crawl-…0003</b><br/>dedupeCollId = 1a9d0e88-…"]
-  W1["<b>wacz-…0001-1</b>"]
-  W3["<b>wacz-…0003-1</b>"]
-  E1(["<b>event-…0001</b>"])
-  E3(["<b>event-…0003</b>"])
+  subgraph CD["example-collection-premis.xml"]
+    WEBCOLL["<b>webcoll-1a9d0e88-…</b><br/>Collection of websites 'Netzliteratur'"]
+    COLL["<b>coll-1a9d0e88-…</b><br/>Collection 'Netzliteratur'"]
+  end
+  subgraph WD["example-website-premis.xml"]
+    WEB["<b>web-497f6eca-…</b><br/>Website 'Beispiel-Netzliteratur'"]
+    C1["<b>crawl-…0001</b><br/>collectionIds = [1a9d0e88-…]<br/>dedupeCollId = 1a9d0e88-…"]
+    C3["<b>crawl-…0003</b><br/>dedupeCollId = 1a9d0e88-…"]
+    W1["<b>wacz-…0001-1</b>"]
+    W3["<b>wacz-…0003-1</b>"]
+    E1(["<b>event-…0001</b>"])
+    E3(["<b>event-…0003</b>"])
+  end
 
   WEBCOLL -- includes --> WEB
   COLL -- represents --> WEBCOLL
@@ -426,26 +485,33 @@ flowchart TB
 
 Statistics and dates of a collection (`crawlCount`, `pageCount`, `totalSize`,
 `dateEarliest`, `dateLatest`, `modified`, ...) are deliberately not exported:
-they describe the collection across all crawl configs and change whenever
-any crawl is added, while a document is only regenerated when its own crawl
-config changes.
+they change whenever any crawl is added and would make every collection
+document change on every run.
 
-**Limitation:** a collection usually spans several crawl configs, but each
-PREMIS document only covers one. The objects `webcoll-<id>` and `coll-<id>`
-therefore appear, with the same identifier, in every document whose crawls
-reference the collection, and each occurrence only lists the website and WACZ
-files of that document. Consumers have to merge these partial descriptions.
+### Collection documents across several crawl configs
+
+When several crawl configs reference the same collection, their website
+documents each refer to the same identifiers, and the collection document
+lists all of them:
 
 ```mermaid
 flowchart LR
-  subgraph DA["cidA.xml"]
-    A_WC["webcoll-X"] -- includes --> A_WEB["web-cidA"]
-    A_CO["coll-X"] -- has part --> A_W["WACZ files of cidA"]
+  subgraph DA["websites/premis/xml/cidA.xml"]
+    A_WEB["web-cidA"]
+    A_W["WACZ files of cidA"]
   end
-  subgraph DB["cidB.xml"]
-    B_WC["webcoll-X"] -- includes --> B_WEB["web-cidB"]
-    B_CO["coll-X"] -- has part --> B_W["WACZ files of cidB"]
+  subgraph DB["websites/premis/xml/cidB.xml"]
+    B_WEB["web-cidB"]
+    B_W["WACZ files of cidB"]
   end
-  A_WC <-. "same identifier,<br/>merge when consuming" .-> B_WC
-  A_CO <-. "same identifier,<br/>merge when consuming" .-> B_CO
+  subgraph DC["collections/premis/xml/X.xml"]
+    WC["webcoll-X"]
+    CO["coll-X"]
+  end
+  JA[("websites/json/cidA.json")] --> DC
+  JB[("websites/json/cidB.json")] --> DC
+  WC -- includes --> A_WEB & B_WEB
+  CO -- has part --> A_W & B_W
+  A_WEB -. "is included in" .-> WC
+  B_WEB -. "is included in" .-> WC
 ```

@@ -16,13 +16,23 @@ from btc2premis import __version__
 from btc2premis.api import DEFAULT_BASE_URL, DEFAULT_TIMEOUT, BrowsertrixClient
 from btc2premis.errors import EXIT_OK, Btc2PremisError, UsageError, ValidationError
 from btc2premis.models import Crawl, CrawlWorkflow, WaczFile
-from btc2premis.premis import build_premis, combined_json
+from btc2premis.premis import (
+    build_collection_premis,
+    build_premis,
+    collection_combined_json,
+    combined_json,
+    referenced_collection_ids,
+)
 
 ENV_USER = "BTC_USER"
 ENV_PASSWORD = "BTC_PASSWORD"
 ENV_OID = "BTC_OID"
 ENV_BASE_URL = "BTC_BASE_URL"
 DEFAULT_SCHEMA_PATH = "premis.xsd"
+#: Subdirectories of --output-dir: one document per crawl config (website) and
+#: one per Browsertrix collection, each as PREMIS XML and/or combined JSON.
+WEBSITES_DIR = "websites"
+COLLECTIONS_DIR = "collections"
 PREMIS_XML_SUBDIR = "premis/xml"
 JSON_SUBDIR = "json"
 
@@ -69,10 +79,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="export every crawl config of the organization",
     )
     parser.add_argument(
+        "--collections",
+        action="store_true",
+        help=(
+            "(re)build the collection documents in "
+            f"'<output-dir>/{COLLECTIONS_DIR}/' from the crawl config JSON files in "
+            f"'<output-dir>/{WEBSITES_DIR}/{JSON_SUBDIR}/' and remove those of collections "
+            "that are no longer referenced (requires --output-dir)"
+        ),
+    )
+    parser.add_argument(
         "--output-dir",
         help=(
-            "write one file per crawl config instead of stdout, into "
-            f"'{PREMIS_XML_SUBDIR}/' and/or '{JSON_SUBDIR}/' subdirectories of this directory"
+            "write files instead of stdout: one per crawl config into "
+            f"'{WEBSITES_DIR}/{PREMIS_XML_SUBDIR}/' and/or '{WEBSITES_DIR}/{JSON_SUBDIR}/', "
+            f"and with --all/--collections one per collection into "
+            f"'{COLLECTIONS_DIR}/{PREMIS_XML_SUBDIR}/' and/or '{COLLECTIONS_DIR}/{JSON_SUBDIR}/'"
         ),
     )
     parser.add_argument(
@@ -112,7 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="FILE_OR_DIR",
         help=(
             "with --validate: validate these existing PREMIS XML files (or directories, "
-            "scanned for *.xml) instead of exporting; no Browsertrix login is used"
+            "scanned recursively for *.xml) instead of exporting; no Browsertrix login is used"
         ),
     )
     parser.add_argument(
@@ -159,10 +181,16 @@ def run(args: argparse.Namespace) -> int:
         raise UsageError("No username given (use -u/--user or the BTC_USER env variable).")
     if not oid:
         raise UsageError("No organization id given (use -o/--oid or the BTC_OID env variable).")
-    if not args.list and not args.cid and not args.all:
-        raise UsageError("Nothing to do: use --list, -c/--cid or --all.")
+    if not args.list and not args.cid and not args.all and not args.collections:
+        raise UsageError("Nothing to do: use --list, -c/--cid, --all or --collections.")
     if args.cid and args.all:
         raise UsageError("--cid and --all are mutually exclusive.")
+    if args.collections and (args.list or args.cid or args.all):
+        raise UsageError("--collections cannot be combined with --list, -c/--cid or --all.")
+    if args.collections and not args.output_dir:
+        raise UsageError(
+            "--collections reads and writes the files in --output-dir and requires it."
+        )
     if args.emit == "both" and not args.output_dir:
         raise UsageError(
             "--emit both requires --output-dir (two files are written per crawl config)."
@@ -182,6 +210,9 @@ def run(args: argparse.Namespace) -> int:
         sys.stdout.write(format_list(configs, args.format))
         return EXIT_OK
 
+    if args.collections:
+        return export_collections(client, oid, args, Path(args.output_dir))
+
     org = client.get_org(oid)
     if args.cid:
         cids = [args.cid]
@@ -194,6 +225,7 @@ def run(args: argparse.Namespace) -> int:
     # e.g. a browser profile the account is not allowed to view is only requested once
     # per run instead of once per crawl config that references it.
     name_cache = NameCache()
+    workflows: list[CrawlWorkflow] = []
     for cid in cids:
         log(args, f"Collecting crawl config {cid}")
         workflow = collect_workflow(client, oid, cid, org, args, name_cache)
@@ -208,20 +240,116 @@ def run(args: argparse.Namespace) -> int:
         )
 
         if output_dir:
-            if premis_document is not None:
-                target_dir = output_dir / PREMIS_XML_SUBDIR
-                target_dir.mkdir(parents=True, exist_ok=True)
-                target = target_dir / f"{cid}.xml"
-                target.write_text(premis_document, encoding="utf-8")
-                log(args, f"Wrote {target}")
-            if combined_document is not None:
-                target_dir = output_dir / JSON_SUBDIR
-                target_dir.mkdir(parents=True, exist_ok=True)
-                target = target_dir / f"{cid}.json"
-                target.write_text(combined_document, encoding="utf-8")
-                log(args, f"Wrote {target}")
+            write_documents(
+                output_dir / WEBSITES_DIR, cid, premis_document, combined_document, args
+            )
         else:
             sys.stdout.write(premis_document if premis_document is not None else combined_document)
+        if args.all:
+            workflows.append(workflow)
+
+    if args.all and output_dir:
+        collections: dict[str, dict[str, Any]] = {}
+        for workflow in workflows:
+            collections.update(workflow.collections)
+        write_collections(workflows, collections, output_dir, args)
+    return EXIT_OK
+
+
+def write_documents(
+    target: Path,
+    name: str,
+    premis_document: str | None,
+    combined_document: str | None,
+    args: argparse.Namespace,
+) -> None:
+    """Write ``<target>/premis/xml/<name>.xml`` and/or ``<target>/json/<name>.json``."""
+    for subdir, suffix, document in (
+        (PREMIS_XML_SUBDIR, "xml", premis_document),
+        (JSON_SUBDIR, "json", combined_document),
+    ):
+        if document is None:
+            continue
+        target_dir = target / subdir
+        target_dir.mkdir(parents=True, exist_ok=True)
+        path = target_dir / f"{name}.{suffix}"
+        path.write_text(document, encoding="utf-8")
+        log(args, f"Wrote {path}")
+
+
+def write_collections(
+    workflows: list[CrawlWorkflow],
+    collections: dict[str, dict[str, Any]],
+    output_dir: Path,
+    args: argparse.Namespace,
+) -> list[str]:
+    """Write one collection document per collection referenced by ``workflows``.
+
+    ``collections`` maps collection ids to ``GET /collections/{id}`` payloads.
+    Returns the ids of the written collections.
+    """
+    coll_ids = referenced_collection_ids(workflows)
+    for coll_id in coll_ids:
+        collection = collections.get(coll_id) or {}
+        premis_document = None
+        if args.emit in ("premis", "both"):
+            premis_document = build_collection_premis(coll_id, collection, workflows)
+            if args.validate:
+                validate(premis_document, args.schema)
+        combined_document = (
+            collection_combined_json(coll_id, collection, workflows)
+            if args.emit in ("combined-json", "both")
+            else None
+        )
+        write_documents(
+            output_dir / COLLECTIONS_DIR, coll_id, premis_document, combined_document, args
+        )
+    return coll_ids
+
+
+def export_collections(
+    client: BrowsertrixClient, oid: str, args: argparse.Namespace, output_dir: Path
+) -> int:
+    """Rebuild all collection documents from the crawl config JSON files.
+
+    The references to the collections are taken from the previously exported
+    ``websites/json/<cid>.json`` files, so that the collection documents always
+    match the website documents, even if only changed crawl configs were
+    exported. The descriptive metadata of each collection is fetched anew
+    (falling back to the copy in the JSON files if that fails).
+    """
+    source = output_dir / WEBSITES_DIR / JSON_SUBDIR
+    if not source.is_dir():
+        raise UsageError(
+            f"{source} does not exist; export the crawl configs with --emit both "
+            "or --emit combined-json first."
+        )
+    workflows = [
+        CrawlWorkflow.from_combined(json.loads(path.read_text(encoding="utf-8")))
+        for path in sorted(source.glob("*.json"))
+    ]
+    log(args, f"Read {len(workflows)} crawl config(s) from {source}")
+
+    collections: dict[str, dict[str, Any]] = {}
+    for coll_id in referenced_collection_ids(workflows):
+        try:
+            collections[coll_id] = client.get_collection(oid, coll_id)
+        except Btc2PremisError as error:
+            log(args, f"  could not fetch collection {coll_id}, using exported metadata: {error}")
+            for workflow in workflows:
+                if workflow.collections.get(coll_id):
+                    collections[coll_id] = workflow.collections[coll_id]
+                    break
+
+    written = set(write_collections(workflows, collections, output_dir, args))
+    for subdir, suffix in ((PREMIS_XML_SUBDIR, "xml"), (JSON_SUBDIR, "json")):
+        target_dir = output_dir / COLLECTIONS_DIR / subdir
+        if not target_dir.is_dir():
+            continue
+        for path in sorted(target_dir.glob(f"*.{suffix}")):
+            if path.stem not in written:
+                path.unlink()
+                log(args, f"Removed {path} (collection no longer referenced)")
     return EXIT_OK
 
 
@@ -397,7 +525,10 @@ def format_markdown_list(rows: list[dict[str, str]], headers: list[str]) -> str:
     lines.append("| " + " | ".join("---" for _ in all_headers) + " |")
     for row in rows:
         cid = row["cid"]
-        link_cells = [f"[json]({JSON_SUBDIR}/{cid}.json)", f"[xml]({PREMIS_XML_SUBDIR}/{cid}.xml)"]
+        link_cells = [
+            f"[json]({WEBSITES_DIR}/{JSON_SUBDIR}/{cid}.json)",
+            f"[xml]({WEBSITES_DIR}/{PREMIS_XML_SUBDIR}/{cid}.xml)",
+        ]
         cells = [escape(row[header]) for header in headers[:insert_at]]
         cells.extend(link_cells)
         cells.extend(escape(row[header]) for header in headers[insert_at:])
@@ -407,17 +538,17 @@ def format_markdown_list(rows: list[dict[str, str]], headers: list[str]) -> str:
 
 def validate_files(args: argparse.Namespace) -> int:
     """Validate existing PREMIS XML files/directories against --schema (no API access)."""
-    if args.list or args.cid or args.all:
+    if args.list or args.cid or args.all or args.collections:
         raise UsageError(
             "File arguments validate existing documents standalone; combine them with "
-            "--schema only, not --list/-c/--all."
+            "--schema only, not --list/-c/--all/--collections."
         )
 
     targets: list[Path] = []
     for raw_path in args.paths:
         path = Path(raw_path)
         if path.is_dir():
-            targets.extend(sorted(path.glob("*.xml")))
+            targets.extend(sorted(path.rglob("*.xml")))
         elif path.is_file():
             targets.append(path)
         else:

@@ -8,12 +8,20 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from btc2premis.models import Crawl, CrawlWorkflow, WaczFile
-from btc2premis.premis import PREMIS_NS, build_premis, local_id
+from btc2premis.premis import (
+    PREMIS_NS,
+    build_collection_premis,
+    build_premis,
+    collection_combined_json,
+    local_id,
+    referenced_collection_ids,
+)
 from tests.conftest import load_fixture
 
 PREMIS = f"{{{PREMIS_NS}}}"
 XSI_TYPE = "{http://www.w3.org/2001/XMLSchema-instance}type"
 COLL = "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"
+DOCS = Path(__file__).resolve().parents[1] / "docs"
 
 
 def _wacz_digest(name: str) -> str:
@@ -88,8 +96,6 @@ def test_identifiers_are_prefixed_local_ids() -> None:
     values = [identifier.text for identifier in root.iter(f"{PREMIS}objectIdentifierValue")]
     assert values == [
         "web-497f6eca-6276-4993-bfeb-53cbbbba6f08",
-        "webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
-        "coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
         "cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08",
         "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
         "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1",
@@ -116,10 +122,10 @@ def test_identifiers_are_prefixed_local_ids() -> None:
 def test_objects_cover_website_config_representations_and_files() -> None:
     root = parse()
     types = [obj.get(XSI_TYPE) for obj in root.findall(f"{PREMIS}object")]
-    # website and collection of websites
-    assert types.count("premis:intellectualEntity") == 2
-    # two crawls and the collection
-    assert types.count("premis:representation") == 3
+    # the website; collections are described in collection documents
+    assert types.count("premis:intellectualEntity") == 1
+    # two crawls
+    assert types.count("premis:representation") == 2
     # two WACZ files plus the crawl config
     assert types.count("premis:file") == 3
 
@@ -301,9 +307,22 @@ def test_presigned_urls_are_not_exported() -> None:
 
 
 def test_example_document_in_docs_is_up_to_date() -> None:
-    """``docs/example-premis.xml`` is a golden file for the fixture data."""
-    example = Path(__file__).resolve().parents[1] / "docs" / "example-premis.xml"
+    """``docs/example-website-premis.xml`` is a golden file for the fixture data."""
+    example = DOCS / "example-website-premis.xml"
     assert example.read_text(encoding="utf-8") == build_premis(build_workflow())
+
+
+def test_example_collection_documents_in_docs_are_up_to_date() -> None:
+    """``docs/example-collection-*`` are golden files for the fixture data."""
+    collection, workflows = load_fixture("collection.json"), [build_workflow()]
+    premis_example = DOCS / "example-collection-premis.xml"
+    json_example = DOCS / "example-collection-combined.json"
+    assert premis_example.read_text(encoding="utf-8") == build_collection_premis(
+        COLL, collection, workflows
+    )
+    assert json_example.read_text(encoding="utf-8") == collection_combined_json(
+        COLL, collection, workflows
+    )
 
 
 def test_entries_are_separated_by_comments_and_blank_lines() -> None:
@@ -342,13 +361,63 @@ def linked_events(element: ET.Element) -> list[str]:
     ]
 
 
-def test_collection_of_websites_includes_the_website() -> None:
+def parse_collection(workflows: list[CrawlWorkflow] | None = None) -> ET.Element:
+    workflows = workflows if workflows is not None else [build_workflow()]
+    return ET.fromstring(build_collection_premis(COLL, load_fixture("collection.json"), workflows))
+
+
+def second_workflow() -> CrawlWorkflow:
+    """Another crawl config whose only crawl belongs to the collection."""
+    crawl = Crawl(
+        raw={"id": "b0000000-2222-4a2b-8c3d-000000000001", "collectionIds": [COLL]},
+        files=[
+            WaczFile(name="b1.wacz", hash="00", size=1),
+            WaczFile(name="b2.wacz", hash="", size=0),
+        ],
+    )
+    return CrawlWorkflow(raw={"id": "0b000000-0000-4000-8000-000000000002"}, crawls=[crawl])
+
+
+def test_website_document_refers_to_collections_by_identifier_only() -> None:
     root = parse()
-    website, website_collection = objects_of_type(root, "premis:intellectualEntity")
+    (website,) = objects_of_type(root, "premis:intellectualEntity")
+    assert related_ids(website, "is included in") == [f"webcoll-{COLL}"]
+    assert all(
+        not object_id(obj).startswith(("webcoll-", "coll-")) for obj in root.iter(f"{PREMIS}object")
+    )
+
+    member_file, other_file = objects_of_type(root, "premis:file")[1:]
+    assert related_ids(member_file, "is part of") == [
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        f"coll-{COLL}",
+    ]
+    assert related_ids(other_file, "is part of") == ["crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003"]
+
+    member_event, dedupe_event = root.findall(f"{PREMIS}event")
+    for event in (member_event, dedupe_event):
+        assert (f"webcoll-{COLL}", "source") in linked_objects(event)
+    assert (f"coll-{COLL}", "outcome") in linked_objects(member_event)
+    assert (f"coll-{COLL}", "outcome") not in linked_objects(dedupe_event)
+
+
+def test_collection_document_contains_only_the_collection_objects() -> None:
+    root = parse_collection()
+    assert [object_id(obj) for obj in root.findall(f"{PREMIS}object")] == [
+        f"webcoll-{COLL}",
+        f"coll-{COLL}",
+    ]
+    assert root.findall(f"{PREMIS}event") == []
+    assert root.findall(f"{PREMIS}agent") == []
+
+
+def test_collection_of_websites_includes_the_website() -> None:
+    root = parse_collection()
+    (website_collection,) = objects_of_type(root, "premis:intellectualEntity")
     assert object_id(website_collection) == f"webcoll-{COLL}"
     assert website_collection.findtext(f"{PREMIS}originalName") == "Netzliteratur"
-    assert related_ids(website_collection, "includes") == [object_id(website)]
-    assert related_ids(website, "is included in") == [f"webcoll-{COLL}"]
+    assert related_ids(website_collection, "includes") == [
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08"
+    ]
 
     metadata = json.loads(
         website_collection.findtext(
@@ -368,27 +437,63 @@ def test_collection_of_websites_includes_the_website() -> None:
 
 
 def test_collection_is_representation_of_its_collection_of_websites() -> None:
-    root = parse()
-    collection = objects_of_type(root, "premis:representation")[0]
+    root = parse_collection()
+    (collection,) = objects_of_type(root, "premis:representation")
     assert object_id(collection) == f"coll-{COLL}"
     assert related_ids(collection, "represents") == [f"webcoll-{COLL}"]
     # only crawl 1 is a member (collectionIds), so only its WACZ file is a part
     assert related_ids(collection, "has part") == ["wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1"]
     assert linked_events(collection) == ["event-a1b2c3d4-1111-4a2b-8c3d-000000000001"]
 
-    member_file, other_file = objects_of_type(root, "premis:file")[1:]
-    assert related_ids(member_file, "is part of") == [
-        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
-        f"coll-{COLL}",
+
+def test_collection_document_spans_all_crawl_configs() -> None:
+    root = parse_collection([second_workflow(), build_workflow()])
+    website_collection, collection = root.findall(f"{PREMIS}object")
+    # crawl configs are ordered by id, independent of the order passed in
+    assert related_ids(website_collection, "includes") == [
+        "web-0b000000-0000-4000-8000-000000000002",
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08",
     ]
-    assert related_ids(other_file, "is part of") == ["crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003"]
+    assert related_ids(collection, "has part") == [
+        "wacz-b0000000-2222-4a2b-8c3d-000000000001-1",
+        "wacz-b0000000-2222-4a2b-8c3d-000000000001-2",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1",
+    ]
 
-    member_event, dedupe_event = root.findall(f"{PREMIS}event")
-    assert (f"coll-{COLL}", "outcome") in linked_objects(member_event)
-    assert (f"coll-{COLL}", "outcome") not in linked_objects(dedupe_event)
+
+def test_collection_name_falls_back_to_resolved_names() -> None:
+    document = build_collection_premis(COLL, {}, [build_workflow()])
+    root = ET.fromstring(document)
+    assert "<!-- Collection 'Netzliteratur' -->" in document
+    assert "significantProperties" not in document
+    assert root.findall(f"{PREMIS}object")[1].findtext(f"{PREMIS}originalName") == "Netzliteratur"
 
 
-def test_no_collection_objects_without_collection_references() -> None:
+def test_collection_combined_json_lists_the_references() -> None:
+    payload = json.loads(
+        collection_combined_json(
+            COLL, load_fixture("collection.json"), [build_workflow(), second_workflow()]
+        )
+    )
+    assert payload["collection"]["id"] == COLL
+    assert "crawlCount" not in payload["collection"]
+    assert [entry["id"] for entry in payload["crawlconfigs"]] == [
+        "0b000000-0000-4000-8000-000000000002",
+        "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+    ]
+    by_id = {crawl["id"]: crawl for crawl in payload["crawls"]}
+    assert by_id["a1b2c3d4-1111-4a2b-8c3d-000000000001"]["member"] is True
+    dedupe_only = by_id["a1b2c3d4-1111-4a2b-8c3d-000000000003"]
+    assert (dedupe_only["member"], dedupe_only["dedupe"]) == (False, True)
+    assert "files" not in dedupe_only
+    assert by_id["b0000000-2222-4a2b-8c3d-000000000001"]["files"] == ["b1.wacz", "b2.wacz"]
+
+
+def test_referenced_collection_ids() -> None:
+    assert referenced_collection_ids([build_workflow(), second_workflow()]) == [COLL]
+
+
+def test_no_collection_references_without_collection_ids() -> None:
     workflow = build_workflow()
     for crawl in workflow.crawls:
         crawl.raw.pop("collectionIds", None)
@@ -396,3 +501,4 @@ def test_no_collection_objects_without_collection_references() -> None:
     document = build_premis(workflow)
     assert "webcoll-" not in document
     assert "coll-" not in document
+    assert referenced_collection_ids([workflow]) == []
