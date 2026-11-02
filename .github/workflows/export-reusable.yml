@@ -10,10 +10,11 @@ name: Export crawl configs (reusable)
 #
 #   jobs:
 #     export:
-#       uses: dla-marbach/btc2premis/.github/workflows/export-reusable.yml@main
+#       uses: dla-marbach/btc2premis/.github/workflows/export-reusable.yml@vX.Y.Z
 #       permissions:
 #         contents: write
 #       with:
+#         ref: vX.Y.Z  # same release tag as in uses:
 #         output-dir: data
 #       secrets: inherit
 
@@ -26,7 +27,7 @@ on:
         type: string
         default: data
       ref:
-        description: "Git ref of dla-marbach/btc2premis to check out and install"
+        description: "Git ref of dla-marbach/btc2premis to check out and install; in production, set it to the same release tag (vX.Y.Z) as in uses:"
         required: false
         type: string
         default: main
@@ -46,24 +47,26 @@ concurrency:
 
 jobs:
   export:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BTC_USER: ${{ secrets.BTC_USER }}
       BTC_PASSWORD: ${{ secrets.BTC_PASSWORD }}
       BTC_OID: ${{ secrets.BTC_OID }}
       BTC_BASE_URL: ${{ secrets.BTC_BASE_URL }}
     steps:
+      # Keep credentials: this job pushes its result to the caller repository.
       - name: Checkout caller repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Checkout btc2premis
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: dla-marbach/btc2premis
           ref: ${{ inputs.ref }}
           path: btc2premis-src
+          persist-credentials: false
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
 
