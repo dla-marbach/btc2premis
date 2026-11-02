@@ -26,7 +26,9 @@ web UI in places:
   This document and the CLI always use "crawl" for
   this concept, including where the Browsertrix API itself says "crawl run".
 
-Details are documented in [`docs/README.md`](docs/README.md).
+Details are documented in [`docs/README.md`](docs/README.md), including
+[diagrams of the mapping](docs/README.md#overview) and of
+[how collections are mapped](docs/README.md#how-collection-references-are-processed).
 
 > **Note:** The PREMIS mapping is preliminary and still work in progress;
 > element names and JSON keys may still change.
