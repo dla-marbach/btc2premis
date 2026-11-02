@@ -1,7 +1,8 @@
 # Development in GitHub Codespaces / Dev Container
 
-This configuration uses the [`mcr.microsoft.com/devcontainers/python:3`](https://mcr.microsoft.com/en-us/product/devcontainers/python/about)
-image and no additional features. All project-specific setup is performed by
+This configuration builds on the [`mcr.microsoft.com/devcontainers/python`](https://mcr.microsoft.com/en-us/product/devcontainers/python/about)
+image with a fixed version tag (see [`Dockerfile`](Dockerfile), updated by
+Dependabot) and no additional features. All project-specific setup is performed by
 [`post-create.sh`](post-create.sh) after the container is created:
 
 ```bash
@@ -43,5 +44,5 @@ If no secrets are set, interactive prompting with `-p` still works.
 
 - If `post-create.sh` does not run (for example, because the setup run was aborted),
   it can be executed manually at any time: `bash .devcontainer/post-create.sh`.
-- The image includes a current Python version; `post-create.sh` aborts if it
-  is older than 3.11.
+- The image includes Python 3.13; `post-create.sh` aborts if it is older than
+  3.11.
