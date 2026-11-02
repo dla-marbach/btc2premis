@@ -161,14 +161,23 @@ class CrawlWorkflow:
             str(coll_id): dict(collection)
             for coll_id, collection in (data.get("collections") or {}).items()
         }
+        collection_names = {
+            str(collection["id"]): str(collection["name"])
+            for crawl in crawls
+            for collection in crawl.raw.get("collections") or []
+            if collection.get("id") and collection.get("name")
+        }
+        collection_names.update(
+            {
+                coll_id: str(collection["name"])
+                for coll_id, collection in collections.items()
+                if collection.get("name")
+            }
+        )
         return cls(
             raw=data.get("crawlconfig") or {},
             crawls=crawls,
             org=data.get("org") or {},
-            collection_names={
-                coll_id: str(collection["name"])
-                for coll_id, collection in collections.items()
-                if collection.get("name")
-            },
+            collection_names=collection_names,
             collections=collections,
         )

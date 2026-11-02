@@ -123,6 +123,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Removing {legacy} (replaced by {WEBSITES_DIR}/)")
             shutil.rmtree(legacy)
 
+    (args.output_dir / WEBSITES_DIR / JSON_SUBDIR).mkdir(parents=True, exist_ok=True)
     print("Rebuilding collection documents")
     subprocess.run(
         ["btc2premis", "--collections", "--emit", "both", "--output-dir", str(args.output_dir)],

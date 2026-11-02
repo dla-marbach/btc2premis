@@ -86,6 +86,31 @@ def test_export_changed_migrates_layout_and_rebuilds_collections(
     assert (output / "websites" / "json" / "kept.json").exists()
 
 
+def test_export_changed_creates_empty_json_source_for_empty_organization(
+    tmp_path: Path, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    module = _load_export_changed()
+    output = tmp_path / "data"
+    previous = tmp_path / "previous.md"
+    current = tmp_path / "current.md"
+    previous.write_text(OVERVIEW.format(rows=""))
+    current.write_text(OVERVIEW.format(rows=""))
+    calls: list[list[str]] = []
+    monkeypatch.setattr(module.subprocess, "run", lambda cmd, check: calls.append(cmd))
+
+    assert (
+        module.main(
+            ["--previous", str(previous), "--current", str(current), "--output-dir", str(output)]
+        )
+        == 0
+    )
+
+    assert (output / "websites" / "json").is_dir()
+    assert calls == [
+        ["btc2premis", "--collections", "--emit", "both", "--output-dir", str(output)]
+    ]
+
+
 def test_export_workflow_commits_websites_and_collections() -> None:
     workflow = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "export-reusable.yml"
     text = workflow.read_text(encoding="utf-8")

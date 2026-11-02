@@ -289,6 +289,36 @@ def test_users_are_omitted_by_default_and_added_on_request() -> None:
     assert "<premis:agentType>person</premis:agentType>" in with_users
 
 
+def test_name_based_user_agents_have_collision_resistant_identifiers() -> None:
+    workflow = build_workflow()
+    workflow.crawls = [
+        Crawl(raw={"id": "one", "userName": "Alice+Archive"}),
+        Crawl(raw={"id": "two", "userName": "Alice-Archive"}),
+        Crawl(raw={"id": "three", "userName": "東京"}),
+    ]
+
+    root = ET.fromstring(build_premis(workflow, include_users=True))
+    user_agents = [
+        agent
+        for agent in root.findall(f"{PREMIS}agent")
+        if agent.findtext(f"{PREMIS}agentType") == "person"
+    ]
+    identifiers = [
+        agent.findtext(f"{PREMIS}agentIdentifier/{PREMIS}agentIdentifierValue")
+        for agent in user_agents
+    ]
+
+    assert [agent.findtext(f"{PREMIS}agentName") for agent in user_agents] == [
+        "Alice+Archive",
+        "Alice-Archive",
+        "東京",
+    ]
+    assert identifiers == [
+        f"agent-alice-archive-{hashlib.sha256(name.encode('utf-8')).hexdigest()}"
+        for name in ("Alice+Archive", "Alice-Archive")
+    ] + [f"agent-{hashlib.sha256('東京'.encode()).hexdigest()}"]
+
+
 def test_output_is_deterministic() -> None:
     assert build_premis(build_workflow()) == build_premis(build_workflow())
 

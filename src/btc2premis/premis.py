@@ -30,6 +30,7 @@ namespace.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from typing import Any
@@ -497,6 +498,9 @@ class PremisBuilder(_DocumentBuilder):
         if self.include_users and (crawl.user_name or crawl.user_id):
             user_key = str(crawl.user_id or crawl.user_name)
             person_id = local_id("agent", user_key)
+            if not crawl.user_id and crawl.user_name:
+                digest = hashlib.sha256(crawl.user_name.encode("utf-8")).hexdigest()
+                person_id = local_id("agent", crawl.user_name, digest)
             self._register_agent(
                 person_id,
                 name=str(crawl.user_name or user_key),

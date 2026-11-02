@@ -216,13 +216,41 @@ def test_collections_are_rebuilt_from_website_json(tmp_path: Path, fake_api: Fak
 
 
 def test_collections_fall_back_to_exported_metadata(tmp_path: Path, fake_api: FakeOpener) -> None:
-    assert run_cli("-c", CID, "--emit", "both", "--output-dir", str(tmp_path)) == EXIT_OK
+    assert run_cli("--all", "--emit", "both", "--output-dir", str(tmp_path)) == EXIT_OK
+    cached_path = tmp_path / "collections" / "json" / f"{COLL}.json"
+    cached = json.loads(cached_path.read_text(encoding="utf-8"))
+    cached["collection"]["name"] = "Recently refreshed collection name"
+    cached_path.write_text(json.dumps(cached), encoding="utf-8")
     del fake_api.routes[f"/api/orgs/{OID}/collections/{COLL}"]
 
-    assert run_cli("--collections", "--output-dir", str(tmp_path)) == EXIT_OK
+    assert run_cli("--collections", "--emit", "both", "--output-dir", str(tmp_path)) == EXIT_OK
 
     xml = (tmp_path / "collections" / "premis" / "xml" / f"{COLL}.xml").read_text()
-    assert "Websites deutschsprachiger Netzliteratur" in xml
+    assert "Recently refreshed collection name" in xml
+    assert json.loads(cached_path.read_text(encoding="utf-8"))["collection"]["name"] == (
+        "Recently refreshed collection name"
+    )
+
+
+def test_from_combined_restores_inline_collection_names_with_metadata_precedence() -> None:
+    workflow = CrawlWorkflow.from_combined(
+        {
+            "crawls": [
+                {
+                    "collections": [
+                        {"id": "inline-only", "name": "Inline collection"},
+                        {"id": COLL, "name": "Stale inline name"},
+                    ]
+                }
+            ],
+            "collections": {COLL: {"name": "Top-level collection"}},
+        }
+    )
+
+    assert workflow.collection_names == {
+        "inline-only": "Inline collection",
+        COLL: "Top-level collection",
+    }
 
 
 def test_collections_require_website_json(

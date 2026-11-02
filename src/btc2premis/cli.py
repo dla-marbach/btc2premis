@@ -336,6 +336,17 @@ def export_collections(
             collections[coll_id] = client.get_collection(oid, coll_id)
         except Btc2PremisError as error:
             log(args, f"  could not fetch collection {coll_id}, using exported metadata: {error}")
+            cached_path = output_dir / COLLECTIONS_DIR / JSON_SUBDIR / f"{coll_id}.json"
+            try:
+                cached_document = json.loads(cached_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                cached_document = {}
+            cached_collection = (
+                cached_document.get("collection") if isinstance(cached_document, dict) else None
+            )
+            if isinstance(cached_collection, dict):
+                collections[coll_id] = cached_collection
+                continue
             for workflow in workflows:
                 if workflow.collections.get(coll_id):
                     collections[coll_id] = workflow.collections[coll_id]
