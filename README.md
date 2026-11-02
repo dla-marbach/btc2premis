@@ -19,18 +19,19 @@ web UI in places:
 
 * **Crawl config** (`cid`) – the reusable configuration (scope, schedule,
   browser settings, ...) that defines what and how to crawl. The Browsertrix
-  web UI (and the `crawlWorkflow`/`workflowId` elements of the PREMIS output,
-  see below) call this a **"Workflow"**.
+  web UI calls this a **"Workflow"**.
 * **Crawl** – a single run (harvesting run) of a crawl config, commonly with
   its resulting WACZ file(s). The Browsertrix web UI lists these as
   **"Crawl Runs"** or **"Archived Items"**, if successful.
   This document and the CLI always use "crawl" for
   this concept, including where the Browsertrix API itself says "crawl run".
 
-Details are documented in [`docs/README.md`](docs/README.md).
+Details are documented in [`docs/README.md`](docs/README.md), including
+[diagrams of the mapping](docs/README.md#overview) and of
+[how collections are mapped](docs/README.md#how-collection-references-are-processed).
 
 > **Note:** The PREMIS mapping is preliminary and still work in progress;
-> element names and the custom `btrix` namespace may still change.
+> element names and JSON keys may still change.
 
 ## Installation
 
@@ -58,9 +59,15 @@ btc2premis -u archive@example.com -p -o 05b62bc6-7787-4e27-876b-2ac41c63b14b --l
 btc2premis -u archive@example.com -p -o 05b62bc6-7787-4e27-876b-2ac41c63b14b \
     -c 497f6eca-6276-4993-bfeb-53cbbbba6f08 > premis3-md.xml
 
-# PREMIS for all crawl configs in the organization (one file <cid>.xml per crawl config in the example directory)
+# PREMIS for all crawl configs and collections in the organization
+# (example/websites/premis/xml/<cid>.xml and example/collections/premis/xml/<collId>.xml)
 btc2premis -u archive@example.com -p -o 05b62bc6-7787-4e27-876b-2ac41c63b14b \
     --all --output-dir example
+
+# Rebuild only the collection documents from example/websites/json/*.json
+# (requires a previous export with --emit both or combined-json)
+btc2premis -u archive@example.com -p -o 05b62bc6-7787-4e27-876b-2ac41c63b14b \
+    --collections --emit both --output-dir example
 
 # Validate exported files against the PREMIS XSD
 btc2premis --validate example
@@ -80,18 +87,45 @@ btc2premis --validate example
 | `--crawl-id ID` | Export only specific crawls (can be repeated) |
 | `--list` | List crawl configs |
 | `--format table\|json\|tsv\|markdown` | Output format for `--list` (default: `table`) |
-| `--all` | Export all crawl configs (requires `--output-dir`) |
-| `--output-dir DIR` | Write one or two files per crawl config into `premis/xml/`/`json/` subdirectories of this directory instead of stdout |
-| `--emit premis\|combined-json\|both` | What to output: PREMIS XML, the underlying API payloads merged into a single JSON document (see [Used API endpoints](#used-api-endpoints)), or both (default: `premis`; `both` requires `--output-dir` and writes `<cid>.xml` and `<cid>.json`) |
+| `--all` | Export all crawl configs and all collections they refer to (requires `--output-dir`) |
+| `--collections` | (Re)build the collection documents in `collections/` from the crawl config JSON files in `websites/json/` and remove those of collections that are no longer referenced (requires `--output-dir`, see [Output layout](#output-layout)) |
+| `--output-dir DIR` | Write files into this directory instead of stdout (see [Output layout](#output-layout)) |
+| `--emit premis\|combined-json\|both` | What to output: PREMIS XML, the underlying API payloads merged into a single JSON document (see [Used API endpoints](#used-api-endpoints)), or both (default: `premis`; `both` requires `--output-dir` and writes `<id>.xml` and `<id>.json`) |
 | `--include-users` | Include Browsertrix users as PREMIS person agents |
 | `--validate` (+ `--schema`, default: `premis.xsd`) | Validate the result against a PREMIS XSD (requires `lxml`) |
-| `--validate FILE_OR_DIR ...` | Validate existing PREMIS files/directories offline without login/API access |
+| `--validate FILE_OR_DIR ...` | Validate existing PREMIS files/directories (recursively) offline without login/API access |
 | `--base-url URL` | Use a different Browsertrix instance (alternative: `BTC_BASE_URL`) |
 | `--timeout SEK` | HTTP timeout |
 | `-q`, `--quiet` | Suppress progress messages |
 
 Payload data goes to stdout, diagnostic messages to stderr; redirections such as
 `> premis3-md.xml` therefore remain clean.
+
+### Output layout
+
+With `--output-dir DIR`, websites (crawl configs) and collections are written to
+separate folders:
+
+```text
+DIR/
+├── websites/
+│   ├── premis/xml/<cid>.xml       one PREMIS document per crawl config
+│   └── json/<cid>.json            its combined JSON (--emit combined-json/both)
+└── collections/
+    ├── premis/xml/<collId>.xml    one PREMIS document per Browsertrix collection
+    └── json/<collId>.json         its combined JSON (--emit combined-json/both)
+```
+
+A website document refers to the collections of its crawls by identifier only
+(`webcoll-<collId>`, `coll-<collId>`). The collection itself, with its
+descriptive metadata and all crawl configs and WACZ files it comprises across
+the whole organization, is described once in its own collection document (see
+[how collections are mapped](docs/README.md#7-collections)). Because a
+collection can span several crawl configs, collection documents are only written
+by `--all` and `--collections`, not by `--cid`. `--collections` assembles them
+from the website JSON files already in `DIR/websites/json/` (only the collection
+metadata itself is fetched from the API), so they also stay complete when only
+some crawl configs are re-exported.
 
 ### Validation
 
@@ -100,7 +134,7 @@ against `--schema` (default: `premis.xsd`) directly, without Browsertrix login o
 API access:
 
 ```bash
-btc2premis --validate example                       # all *.xml files in the directory
+btc2premis --validate example                       # all *.xml files in the directory tree
 btc2premis --validate --schema premis.xsd data/*.xml # individual files
 ```
 
@@ -151,45 +185,58 @@ affected profile ID and exports the PREMIS document without the
 | `GET /api/orgs/{oid}` | Organization name (PREMIS agent) | [`tests/fixtures/org.json`](tests/fixtures/org.json) |
 | `GET /api/orgs/{oid}/crawlconfigs` | List of crawl configs (`--list`) | [`tests/fixtures/crawlconfig.json`](tests/fixtures/crawlconfig.json) (wrapped in a paginated list) |
 | `GET /api/orgs/{oid}/crawlconfigs/{cid}` | Current configuration of a crawl config | [`tests/fixtures/crawlconfig.json`](tests/fixtures/crawlconfig.json) |
-| `GET /api/orgs/{oid}/crawls?cid={cid}` | Crawls including `image` (actual crawler version) | [`tests/fixtures/crawls.json`](tests/fixtures/crawls.json) |
+| `GET /api/orgs/{oid}/crawls?cid={cid}` | Crawls that ran using the crawl config (including the revision `cid_rev` and the Docker container image `image` of the crawler, i.e. the actual crawler version) | [`tests/fixtures/crawls.json`](tests/fixtures/crawls.json) |
 | `GET /api/orgs/{oid}/crawls/{id}/replay.json` | WACZ files with name, hash, and size | [`tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json`](tests/fixtures/replay-a1b2c3d4-1111-4a2b-8c3d-000000000001.json) |
 | `GET /api/orgs/{oid}/profiles/{id}` | Browser profile name | [`tests/fixtures/profile.json`](tests/fixtures/profile.json) |
-| `GET /api/orgs/{oid}/collections/{id}` | Collection name | [`tests/fixtures/collection.json`](tests/fixtures/collection.json) |
+| `GET /api/orgs/{oid}/collections/{id}` | Collection name and descriptive metadata (collection documents) | [`tests/fixtures/collection.json`](tests/fixtures/collection.json) |
 
 All lists are retrieved with full pagination. The fake API used by the test
 suite (`tests/conftest.py`) serves exactly these fixture files, so each one
 documents the real shape of its endpoint's response.
 
-`--emit combined-json` merges the crawl config, organization, and crawls
+`--emit combined-json` merges the crawl config, organization, crawls
 (each crawl in turn merging its `crawls?cid=` list entry with its
-`replay.json` response) into a single JSON document per crawl config; it is
-not an unmodified single-endpoint response. See [Automated
-export](#automated-export) for how this is used in `data/json/<cid>.json`.
+`replay.json` response), and the referenced collections (reduced to their
+descriptive fields, without the volatile statistics) into a single JSON
+document per crawl config; it is not an unmodified single-endpoint response. See [Automated
+export](#automated-export) for how this is used in `data/websites/json/<cid>.json`.
+For collection documents, the combined JSON contains the collection metadata, the
+referencing crawl configs, and the referencing crawls (with their WACZ files if
+they are members of the collection).
 
 
 ## Example output
 
-Complete sample files generated from the test fixtures are available at
-[`docs/example-premis.xml`](docs/example-premis.xml) (PREMIS) and
-[`docs/example-combined.json`](docs/example-combined.json) (`--emit
-combined-json`). PREMIS excerpt:
+Complete sample files generated from the test fixtures are available:
+
+| | PREMIS | `--emit combined-json` |
+| --- | --- | --- |
+| Website (crawl config) | [`docs/example-website-premis.xml`](docs/example-website-premis.xml) | [`docs/example-website-combined.json`](docs/example-website-combined.json) |
+| Collection | [`docs/example-collection-premis.xml`](docs/example-collection-premis.xml) | [`docs/example-collection-combined.json`](docs/example-collection-combined.json) |
+
+PREMIS excerpt (website document):
 
 ```xml
 <premis:event>
   <premis:eventIdentifier>
-    <premis:eventIdentifierType>UUID</premis:eventIdentifierType>
-    <premis:eventIdentifierValue>_bd53b52c-4e76-55f7-976e-37bd77358a3c</premis:eventIdentifierValue>
+    <premis:eventIdentifierType>local</premis:eventIdentifierType>
+    <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventIdentifierValue>
   </premis:eventIdentifier>
   <premis:eventType>capture</premis:eventType>
   <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>
   <premis:eventDetailInformation>
     <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.6.1 via Browsertrix; ...</premis:eventDetail>
-    <premis:eventDetailExtension>
-      <btrix:crawlConfiguration workflowId="497f6eca-..." crawlId="a1b2c3d4-...">
-        <btrix:scope>
-          <btrix:scopeType>prefix</btrix:scopeType>
-          <btrix:startUrl>https://example.org/</btrix:startUrl>
-          ...
+  </premis:eventDetailInformation>
+  <premis:eventDetailInformation>
+    <premis:eventDetail><![CDATA[{
+  "crawlConfigId": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "crawlConfigRevision": 2,
+  "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000001",
+  "settings": {
+    "scope": {
+      "scopeType": "prefix",
+      "startUrl": "https://example.org/",
+      ...
 ```
 
 ## Development
@@ -226,8 +273,8 @@ results there, in `data/`:
 * `data/README.md` – overview of all crawl configs in the organization
   (`btc2premis --list --format markdown`), with links to the associated
   `json`/`premis-xml` files, rewritten completely on each run.
-* `data/premis/xml/<cid>.xml` – one PREMIS 3.0 document per crawl config.
-* `data/json/<cid>.json` – the crawl config, crawls, and WACZ file metadata that
+* `data/websites/premis/xml/<cid>.xml` – one PREMIS 3.0 document per crawl config.
+* `data/websites/json/<cid>.json` – the crawl config, crawls, and WACZ file metadata that
   the PREMIS document was generated from, merged from several API endpoints
   into one JSON document (see [Used API endpoints](#used-api-endpoints);
   `--emit both`); it is not an unmodified single-endpoint API response.
@@ -236,6 +283,14 @@ results there, in `data/`:
   previously committed `data/README.md`, ignoring the link columns); unchanged crawl
   configs are skipped.
   If a crawl config disappears from the organization, both associated files are deleted.
+* `data/collections/premis/xml/<collId>.xml` and `data/collections/json/<collId>.json`
+  – one PREMIS 3.0 document (plus combined JSON) per Browsertrix collection, rebuilt
+  on each run with `btc2premis --collections` from all files in
+  `data/websites/json/`; files of collections that are no longer referenced are deleted.
+
+Files from the earlier flat layout (`data/premis/xml/`, `data/json/`) are migrated
+automatically on the first run: every crawl config without files in
+`data/websites/` is re-exported, and the old directories are removed.
 
 When changes occur, the affected files are overwritten; export versioning is handled
 by Git history and no additional snapshotting is required.

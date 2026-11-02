@@ -1,4 +1,19 @@
 {
+  "collections": {
+    "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e": {
+      "access": "public",
+      "caption": "Websites deutschsprachiger Netzliteratur",
+      "created": "2025-01-10T08:00:00Z",
+      "description": "Sammlung von Websites mit **Netzliteratur**, gecrawlt vom Deutschen Literaturarchiv Marbach.",
+      "homeUrl": "https://example.org/",
+      "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+      "name": "Netzliteratur",
+      "slug": "netzliteratur",
+      "tags": [
+        "netzliteratur"
+      ]
+    }
+  },
   "crawlconfig": {
     "autoAddCollections": [
       "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"

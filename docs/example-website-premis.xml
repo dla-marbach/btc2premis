@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This PREMIS mapping is preliminary and still work in progress; element names and JSON keys may still change. -->
+<premis:premis xmlns:premis="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0" xsi:schemaLocation="http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd">
+
+  <!-- ==================== OBJECTS ==================== -->
+
+  <!-- Website harvested by crawl config 'Beispiel-Netzliteratur' -->
+  <premis:object xsi:type="premis:intellectualEntity">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:significantProperties>
+      <premis:significantPropertiesType>seed URL</premis:significantPropertiesType>
+      <premis:significantPropertiesValue>https://example.org/</premis:significantPropertiesValue>
+    </premis:significantProperties>
+    <premis:significantProperties>
+      <premis:significantPropertiesType>seed URL</premis:significantPropertiesType>
+      <premis:significantPropertiesValue>https://example.org/extra</premis:significantPropertiesValue>
+    </premis:significantProperties>
+    <premis:originalName>Beispiel-Netzliteratur</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is included in</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- Crawl config 'Beispiel-Netzliteratur', current revision 3 -->
+  <premis:object xsi:type="premis:file">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:significantProperties>
+      <premis:significantPropertiesType>crawl configuration</premis:significantPropertiesType>
+      <premis:significantPropertiesValue><![CDATA[{
+  "crawlConfigId": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "crawlConfigRevision": 3,
+  "settings": {
+    "scope": {
+      "scopeType": "prefix",
+      "startUrl": "https://example.org/",
+      "maxDepth": 2,
+      "extraHops": 1,
+      "includeLinkedPages": true,
+      "useRobots": false,
+      "useSitemap": true,
+      "selectLinks": [
+        "a[href]->href"
+      ],
+      "additionalPages": [
+        "https://example.org/extra"
+      ],
+      "exclude": [
+        "/kalender/"
+      ],
+      "failOnFailedSeed": true,
+      "seeds": [
+        {
+          "url": "https://example.org/",
+          "scopeType": "prefix",
+          "depth": 2,
+          "extraHops": 1,
+          "exclude": [
+            "/impressum"
+          ]
+        },
+        {
+          "url": "https://example.org/extra"
+        }
+      ],
+      "dedupeCollection": {
+        "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+        "name": "Netzliteratur"
+      }
+    },
+    "limits": {
+      "maxPages": 500,
+      "crawlTimeoutSeconds": 86400,
+      "maxCrawlSizeBytes": 10737418240
+    },
+    "pageBehavior": {
+      "behaviors": [
+        "autoscroll",
+        "autoclick",
+        "siteSpecific"
+      ],
+      "autoscroll": true,
+      "autoclick": true,
+      "clickSelector": "a",
+      "customBehaviors": [
+        "https://example.org/behavior.js"
+      ],
+      "behaviorTimeoutSeconds": 90,
+      "pageLoadTimeoutSeconds": 120,
+      "postLoadDelaySeconds": 5,
+      "pageExtraDelaySeconds": 2
+    },
+    "browserSettings": {
+      "browserProfileId": "5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7",
+      "browserProfileName": "DLA-Standardprofil",
+      "browserWindows": 4,
+      "crawlerChannel": "default",
+      "blockAds": true,
+      "saveStorage": true,
+      "userAgent": "DLA Marbach Webarchiv",
+      "language": "de"
+    },
+    "scheduling": {
+      "crawlSchedule": "0 3 * * 1"
+    },
+    "collections": {
+      "autoAddToCollection": [
+        {
+          "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+          "name": "Netzliteratur"
+        }
+      ]
+    },
+    "metadata": {
+      "name": "Beispiel-Netzliteratur",
+      "description": "Wöchentlicher Crawl einer Netzliteratur-Website",
+      "tags": [
+        "netzliteratur",
+        "test"
+      ],
+      "jobType": "custom",
+      "created": "2025-01-15T09:12:00Z",
+      "createdBy": "Digitales Archiv",
+      "modified": "2025-06-02T11:45:00Z",
+      "modifiedBy": "Digitales Archiv",
+      "revision": 3
+    }
+  }
+}]]></premis:significantPropertiesValue>
+    </premis:significantProperties>
+    <premis:objectCharacteristics>
+      <premis:format>
+        <premis:formatDesignation>
+          <premis:formatName>JSON</premis:formatName>
+        </premis:formatDesignation>
+      </premis:format>
+      <premis:format>
+        <premis:formatRegistry>
+          <premis:formatRegistryName>Media types</premis:formatRegistryName>
+          <premis:formatRegistryKey>application/json</premis:formatRegistryKey>
+        </premis:formatRegistry>
+      </premis:format>
+    </premis:objectCharacteristics>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- Crawl a1b2c3d4-1111-4a2b-8c3d-000000000001, started 2025-06-02T03:00:04Z -->
+  <premis:object xsi:type="premis:representation">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000001)</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>represents</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+      <premis:relatedEventIdentifier>
+        <premis:relatedEventIdentifierType>local</premis:relatedEventIdentifierType>
+        <premis:relatedEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedEventIdentifierValue>
+      </premis:relatedEventIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- WACZ file 1 of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->
+  <premis:object xsi:type="premis:file">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:objectCharacteristics>
+      <premis:compositionLevel>0</premis:compositionLevel>
+      <premis:fixity>
+        <premis:messageDigestAlgorithm>SHA-256</premis:messageDigestAlgorithm>
+        <premis:messageDigest>bb8007384a8074290b9247f012c34c30c787b832f641dd4a36a9e33271e8fab1</premis:messageDigest>
+      </premis:fixity>
+      <premis:size>194837122</premis:size>
+      <premis:format>
+        <premis:formatDesignation>
+          <premis:formatName>WACZ</premis:formatName>
+        </premis:formatDesignation>
+      </premis:format>
+      <premis:format>
+        <premis:formatRegistry>
+          <premis:formatRegistryName>Media types</premis:formatRegistryName>
+          <premis:formatRegistryKey>application/wacz</premis:formatRegistryKey>
+        </premis:formatRegistry>
+      </premis:format>
+      <premis:creatingApplication>
+        <premis:creatingApplicationName>Browsertrix Crawler</premis:creatingApplicationName>
+        <premis:creatingApplicationVersion>1.6.1</premis:creatingApplicationVersion>
+      </premis:creatingApplication>
+    </premis:objectCharacteristics>
+    <premis:originalName>a1b2c3d4-1111-4a2b-8c3d-000000000001.wacz</premis:originalName>
+    <premis:storage>
+      <premis:contentLocation>
+        <premis:contentLocationType>Path</premis:contentLocationType>
+        <premis:contentLocationValue>./a1b2c3d4-1111-4a2b-8c3d-000000000001.wacz</premis:contentLocationValue>
+      </premis:contentLocation>
+    </premis:storage>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- Crawl a1b2c3d4-1111-4a2b-8c3d-000000000003, started 2025-06-09T03:00:07Z -->
+  <premis:object xsi:type="premis:representation">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:originalName>Beispiel-Netzliteratur (a1b2c3d4-1111-4a2b-8c3d-000000000003)</premis:originalName>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>represents</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+      <premis:relatedEventIdentifier>
+        <premis:relatedEventIdentifierType>local</premis:relatedEventIdentifierType>
+        <premis:relatedEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedEventIdentifierValue>
+      </premis:relatedEventIdentifier>
+    </premis:relationship>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>has part</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- WACZ file 1 of crawl a1b2c3d4-1111-4a2b-8c3d-000000000003 -->
+  <premis:object xsi:type="premis:file">
+    <premis:objectIdentifier>
+      <premis:objectIdentifierType>local</premis:objectIdentifierType>
+      <premis:objectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:objectIdentifierValue>
+    </premis:objectIdentifier>
+    <premis:objectCharacteristics>
+      <premis:compositionLevel>0</premis:compositionLevel>
+      <premis:fixity>
+        <premis:messageDigestAlgorithm>SHA-256</premis:messageDigestAlgorithm>
+        <premis:messageDigest>b28ad2129fcd55f3a2ce66297e8ec8e166a4892cff8b4a591ba9315cd175ffb6</premis:messageDigest>
+      </premis:fixity>
+      <premis:size>201337000</premis:size>
+      <premis:format>
+        <premis:formatDesignation>
+          <premis:formatName>WACZ</premis:formatName>
+        </premis:formatDesignation>
+      </premis:format>
+      <premis:format>
+        <premis:formatRegistry>
+          <premis:formatRegistryName>Media types</premis:formatRegistryName>
+          <premis:formatRegistryKey>application/wacz</premis:formatRegistryKey>
+        </premis:formatRegistry>
+      </premis:format>
+      <premis:creatingApplication>
+        <premis:creatingApplicationName>Browsertrix Crawler</premis:creatingApplicationName>
+        <premis:creatingApplicationVersion>1.7.0</premis:creatingApplicationVersion>
+      </premis:creatingApplication>
+    </premis:objectCharacteristics>
+    <premis:originalName>a1b2c3d4-1111-4a2b-8c3d-000000000003.wacz</premis:originalName>
+    <premis:storage>
+      <premis:contentLocation>
+        <premis:contentLocationType>Path</premis:contentLocationType>
+        <premis:contentLocationValue>./a1b2c3d4-1111-4a2b-8c3d-000000000003.wacz</premis:contentLocationValue>
+      </premis:contentLocation>
+    </premis:storage>
+    <premis:relationship>
+      <premis:relationshipType>structural</premis:relationshipType>
+      <premis:relationshipSubType>is part of</premis:relationshipSubType>
+      <premis:relatedObjectIdentifier>
+        <premis:relatedObjectIdentifierType>local</premis:relatedObjectIdentifierType>
+        <premis:relatedObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:relatedObjectIdentifierValue>
+      </premis:relatedObjectIdentifier>
+    </premis:relationship>
+    <premis:linkingEventIdentifier>
+      <premis:linkingEventIdentifierType>local</premis:linkingEventIdentifierType>
+      <premis:linkingEventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingEventIdentifierValue>
+    </premis:linkingEventIdentifier>
+  </premis:object>
+
+  <!-- ==================== EVENTS ==================== -->
+
+  <!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->
+  <premis:event>
+    <premis:eventIdentifier>
+      <premis:eventIdentifierType>local</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventIdentifierValue>
+    </premis:eventIdentifier>
+    <premis:eventType>capture</premis:eventType>
+    <premis:eventDateTime>2025-06-02T03:00:04Z</premis:eventDateTime>
+    <premis:eventDetailInformation>
+      <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.6.1 via Browsertrix; crawl config 'Beispiel-Netzliteratur'; crawl config id 497f6eca-6276-4993-bfeb-53cbbbba6f08; crawl config revision 2; crawl id a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:eventDetail>
+    </premis:eventDetailInformation>
+    <premis:eventDetailInformation>
+      <premis:eventDetail><![CDATA[{
+  "crawlConfigId": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "crawlConfigRevision": 2,
+  "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000001",
+  "settings": {
+    "scope": {
+      "scopeType": "prefix",
+      "startUrl": "https://example.org/",
+      "maxDepth": 2,
+      "extraHops": 1,
+      "includeLinkedPages": true,
+      "useSitemap": true,
+      "selectLinks": [
+        "a[href]->href"
+      ],
+      "seeds": [
+        {
+          "url": "https://example.org/",
+          "scopeType": "prefix"
+        }
+      ],
+      "dedupeCollection": {
+        "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+        "name": "Netzliteratur"
+      }
+    },
+    "limits": {
+      "maxPages": 500,
+      "crawlTimeoutSeconds": 86400,
+      "maxCrawlSizeBytes": 10737418240
+    },
+    "pageBehavior": {
+      "behaviors": [
+        "autoscroll",
+        "siteSpecific"
+      ],
+      "autoscroll": true,
+      "autoclick": false
+    },
+    "browserSettings": {
+      "browserProfileId": "5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7",
+      "browserProfileName": "DLA-Standardprofil",
+      "browserWindows": 4,
+      "crawlerChannel": "default",
+      "crawlerImage": "docker.io/webrecorder/browsertrix-crawler:1.6.1",
+      "blockAds": true,
+      "saveStorage": true,
+      "userAgent": "DLA Marbach Webarchiv"
+    },
+    "scheduling": {
+      "crawlSchedule": "0 3 * * 1"
+    },
+    "collections": {
+      "autoAddToCollection": [
+        {
+          "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+          "name": "Netzliteratur"
+        }
+      ],
+      "collection": [
+        {
+          "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+          "name": "Netzliteratur"
+        }
+      ]
+    },
+    "metadata": {
+      "name": "Beispiel-Netzliteratur",
+      "description": "Wöchentlicher Crawl einer Netzliteratur-Website",
+      "tags": [
+        "netzliteratur"
+      ],
+      "jobType": "custom",
+      "created": "2025-01-15T09:12:00Z",
+      "createdBy": "Digitales Archiv"
+    }
+  },
+  "inheritedFromCrawlConfig": {
+    "crawlConfigRevision": 3,
+    "settings": [
+      "limits.crawlTimeoutSeconds",
+      "limits.maxCrawlSizeBytes",
+      "scheduling.crawlSchedule",
+      "collections.autoAddToCollection",
+      "metadata.description",
+      "metadata.jobType",
+      "metadata.created",
+      "metadata.createdBy"
+    ]
+  }
+}]]></premis:eventDetail>
+    </premis:eventDetailInformation>
+    <premis:eventOutcomeInformation>
+      <premis:eventOutcome>complete</premis:eventOutcome>
+      <premis:eventOutcomeDetail>
+        <premis:eventOutcomeDetailNote><![CDATA[{
+  "state": "complete",
+  "started": "2025-06-02T03:00:04Z",
+  "finished": "2025-06-02T03:38:55Z",
+  "crawlExecSeconds": 2331,
+  "pagesDone": 412,
+  "pagesFound": 415,
+  "pageCount": 412,
+  "errorPageCount": 3,
+  "fileCount": 1,
+  "fileSize": 194837122
+}]]></premis:eventOutcomeDetailNote>
+      </premis:eventOutcomeDetail>
+    </premis:eventOutcomeInformation>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix-crawler-1.6.1</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-btc2premis-0.1.0</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>coll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+  </premis:event>
+
+  <!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000003 -->
+  <premis:event>
+    <premis:eventIdentifier>
+      <premis:eventIdentifierType>local</premis:eventIdentifierType>
+      <premis:eventIdentifierValue>event-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:eventIdentifierValue>
+    </premis:eventIdentifier>
+    <premis:eventType>capture</premis:eventType>
+    <premis:eventDateTime>2025-06-09T03:00:07Z</premis:eventDateTime>
+    <premis:eventDetailInformation>
+      <premis:eventDetail>Web harvesting with Browsertrix Crawler 1.7.0 via Browsertrix; crawl config 'Beispiel-Netzliteratur'; crawl config id 497f6eca-6276-4993-bfeb-53cbbbba6f08; crawl config revision 3; crawl id a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:eventDetail>
+    </premis:eventDetailInformation>
+    <premis:eventDetailInformation>
+      <premis:eventDetail><![CDATA[{
+  "crawlConfigId": "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+  "crawlConfigRevision": 3,
+  "crawlId": "a1b2c3d4-1111-4a2b-8c3d-000000000003",
+  "settings": {
+    "scope": {
+      "scopeType": "prefix",
+      "startUrl": "https://example.org/",
+      "maxDepth": 2,
+      "extraHops": 1,
+      "includeLinkedPages": true,
+      "useSitemap": true,
+      "selectLinks": [
+        "a[href]->href"
+      ],
+      "seeds": [
+        {
+          "url": "https://example.org/",
+          "scopeType": "prefix"
+        }
+      ],
+      "dedupeCollection": {
+        "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+        "name": "Netzliteratur"
+      }
+    },
+    "limits": {
+      "maxPages": 500,
+      "crawlTimeoutSeconds": 86400,
+      "maxCrawlSizeBytes": 10737418240
+    },
+    "pageBehavior": {
+      "behaviors": [
+        "autoscroll",
+        "autoclick",
+        "siteSpecific"
+      ],
+      "autoscroll": true,
+      "autoclick": true,
+      "clickSelector": "button"
+    },
+    "browserSettings": {
+      "browserProfileId": "5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7",
+      "browserProfileName": "DLA-Standardprofil",
+      "browserWindows": 4,
+      "crawlerChannel": "default",
+      "crawlerImage": "docker.io/webrecorder/browsertrix-crawler:1.7.0",
+      "blockAds": true,
+      "saveStorage": true,
+      "userAgent": "DLA Marbach Webarchiv"
+    },
+    "scheduling": {
+      "crawlSchedule": "0 3 * * 1"
+    },
+    "collections": {
+      "autoAddToCollection": [
+        {
+          "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+          "name": "Netzliteratur"
+        }
+      ]
+    },
+    "metadata": {
+      "name": "Beispiel-Netzliteratur",
+      "description": "Wöchentlicher Crawl einer Netzliteratur-Website",
+      "tags": [
+        "netzliteratur",
+        "test"
+      ],
+      "jobType": "custom",
+      "created": "2025-01-15T09:12:00Z",
+      "createdBy": "Digitales Archiv"
+    }
+  },
+  "inheritedFromCrawlConfig": {
+    "crawlConfigRevision": 3,
+    "settings": [
+      "limits.crawlTimeoutSeconds",
+      "limits.maxCrawlSizeBytes",
+      "browserSettings.browserProfileId",
+      "browserSettings.browserProfileName",
+      "scheduling.crawlSchedule",
+      "collections.autoAddToCollection",
+      "metadata.name",
+      "metadata.description",
+      "metadata.tags",
+      "metadata.jobType",
+      "metadata.created",
+      "metadata.createdBy"
+    ]
+  }
+}]]></premis:eventDetail>
+    </premis:eventDetailInformation>
+    <premis:eventOutcomeInformation>
+      <premis:eventOutcome>complete</premis:eventOutcome>
+      <premis:eventOutcomeDetail>
+        <premis:eventOutcomeDetailNote><![CDATA[{
+  "state": "complete",
+  "started": "2025-06-09T03:00:07Z",
+  "finished": "2025-06-09T03:41:12Z",
+  "crawlExecSeconds": 2465,
+  "pagesDone": 420,
+  "pagesFound": 421,
+  "pageCount": 420,
+  "fileCount": 1,
+  "fileSize": 201337000
+}]]></premis:eventOutcomeDetailNote>
+      </premis:eventOutcomeDetail>
+    </premis:eventOutcomeInformation>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix-crawler-1.7.0</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>executing program</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-browsertrix</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>implementer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>authorizer</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingAgentIdentifier>
+      <premis:linkingAgentIdentifierType>local</premis:linkingAgentIdentifierType>
+      <premis:linkingAgentIdentifierValue>agent-btc2premis-0.1.0</premis:linkingAgentIdentifierValue>
+      <premis:linkingAgentRole>metadata creator</premis:linkingAgentRole>
+    </premis:linkingAgentIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>web-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>webcoll-1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>source</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+    <premis:linkingObjectIdentifier>
+      <premis:linkingObjectIdentifierType>local</premis:linkingObjectIdentifierType>
+      <premis:linkingObjectIdentifierValue>wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1</premis:linkingObjectIdentifierValue>
+      <premis:linkingObjectRole>outcome</premis:linkingObjectRole>
+    </premis:linkingObjectIdentifier>
+  </premis:event>
+
+  <!-- ==================== AGENTS ==================== -->
+
+  <!-- Browsertrix Crawler 1.6.1 (software) -->
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix-crawler-1.6.1</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix Crawler</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>1.6.1</premis:agentVersion>
+    <premis:agentNote>container image: docker.io/webrecorder/browsertrix-crawler:1.6.1</premis:agentNote>
+  </premis:agent>
+
+  <!-- Browsertrix (software) -->
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentNote>crawl management service by Webrecorder</premis:agentNote>
+  </premis:agent>
+
+  <!-- DLA Marbach (organization) -->
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-05b62bc6-7787-4e27-876b-2ac41c63b14b</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>DLA Marbach</premis:agentName>
+    <premis:agentType>organization</premis:agentType>
+  </premis:agent>
+
+  <!-- btc2premis 0.1.0 (software) -->
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-btc2premis-0.1.0</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>btc2premis</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>0.1.0</premis:agentVersion>
+    <premis:agentNote>created this PREMIS record from the Browsertrix API</premis:agentNote>
+  </premis:agent>
+
+  <!-- Browsertrix Crawler 1.7.0 (software) -->
+  <premis:agent>
+    <premis:agentIdentifier>
+      <premis:agentIdentifierType>local</premis:agentIdentifierType>
+      <premis:agentIdentifierValue>agent-browsertrix-crawler-1.7.0</premis:agentIdentifierValue>
+    </premis:agentIdentifier>
+    <premis:agentName>Browsertrix Crawler</premis:agentName>
+    <premis:agentType>software</premis:agentType>
+    <premis:agentVersion>1.7.0</premis:agentVersion>
+    <premis:agentNote>container image: docker.io/webrecorder/browsertrix-crawler:1.7.0</premis:agentNote>
+  </premis:agent>
+</premis:premis>

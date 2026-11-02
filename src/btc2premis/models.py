@@ -87,6 +87,22 @@ class Crawl:
         return self.raw.get("config") or {}
 
     @property
+    def config_revision(self) -> int | None:
+        """Revision of the crawl config (``rev``) the crawl was started with."""
+        return self.raw.get("cid_rev")
+
+    @property
+    def collection_ids(self) -> list[str]:
+        """Collections the crawl belongs to (``collectionIds``)."""
+        return [str(item) for item in self.raw.get("collectionIds") or [] if item]
+
+    @property
+    def dedupe_collection_id(self) -> str | None:
+        """Collection the crawl was deduplicated against (``config.dedupeCollId``)."""
+        value = self.config.get("dedupeCollId")
+        return str(value) if value else None
+
+    @property
     def user_name(self) -> str | None:
         return self.raw.get("userName")
 
@@ -99,8 +115,7 @@ class Crawl:
 class CrawlWorkflow:
     """A Browsertrix crawl config (``crawlconfig``) with all its crawls.
 
-    Called "Workflow" in the Browsertrix web UI (and in the ``crawlWorkflow``/
-    ``workflowId`` PREMIS extension elements produced by this tool).
+    Called "Workflow" in the Browsertrix web UI.
     """
 
     raw: dict[str, Any]
@@ -108,6 +123,8 @@ class CrawlWorkflow:
     org: dict[str, Any] = field(default_factory=dict)
     profile_names: dict[str, str] = field(default_factory=dict)
     collection_names: dict[str, str] = field(default_factory=dict)
+    #: Full ``GET /collections/{id}`` payloads of the referenced collections.
+    collections: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     @property
     def id(self) -> str:
@@ -120,3 +137,47 @@ class CrawlWorkflow:
     @property
     def config(self) -> dict[str, Any]:
         return self.raw.get("config") or {}
+
+    @property
+    def revision(self) -> int | None:
+        """Current revision of the crawl config (``rev``)."""
+        return self.raw.get("rev")
+
+    @classmethod
+    def from_combined(cls, data: dict[str, Any]) -> CrawlWorkflow:
+        """Rebuild a crawl config from the output of ``--emit combined-json``.
+
+        Browser profile names are not part of that document and stay empty;
+        they are not needed for the collection documents.
+        """
+        crawls = [
+            Crawl(
+                raw=entry,
+                files=[WaczFile.from_resource(item) for item in entry.get("resources") or []],
+            )
+            for entry in data.get("crawls") or []
+        ]
+        collections = {
+            str(coll_id): dict(collection)
+            for coll_id, collection in (data.get("collections") or {}).items()
+        }
+        collection_names = {
+            str(collection["id"]): str(collection["name"])
+            for crawl in crawls
+            for collection in crawl.raw.get("collections") or []
+            if collection.get("id") and collection.get("name")
+        }
+        collection_names.update(
+            {
+                coll_id: str(collection["name"])
+                for coll_id, collection in collections.items()
+                if collection.get("name")
+            }
+        )
+        return cls(
+            raw=data.get("crawlconfig") or {},
+            crawls=crawls,
+            org=data.get("org") or {},
+            collection_names=collection_names,
+            collections=collections,
+        )

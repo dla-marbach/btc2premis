@@ -1,8 +1,9 @@
 name: Export crawl configs (reusable)
 
 # Reusable workflow that performs the actual crawl-config export: checks out
-# btc2premis, installs it, exports changed crawl configs into <output-dir> of
-# the *caller* repository, and commits/pushes the result there.
+# btc2premis, installs it, exports changed crawl configs into
+# <output-dir>/websites/ of the *caller* repository, rebuilds the collection
+# documents in <output-dir>/collections/, and commits/pushes the result there.
 #
 # Intended to be called from a thin trigger workflow in another (private)
 # repository, e.g.:
@@ -20,7 +21,7 @@ on:
   workflow_call:
     inputs:
       output-dir:
-        description: "Directory (relative to the caller repo root) with README.md, json/ and premis/xml/"
+        description: "Directory (relative to the caller repo root) with README.md, websites/ and collections/"
         required: false
         type: string
         default: data
@@ -73,7 +74,7 @@ jobs:
         run: |
           btc2premis --list --format markdown > /tmp/README.md
 
-      - name: Determine changed crawl configs and export PREMIS + raw JSON
+      - name: Export changed crawl configs and rebuild collection documents
         run: |
           python btc2premis-src/.github/workflows/scripts/export_changed.py \
             --previous "${{ inputs.output-dir }}/README.md" \
@@ -88,7 +89,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain -- "${{ inputs.output-dir }}")" ]; then
-            git add "${{ inputs.output-dir }}/README.md" "${{ inputs.output-dir }}/json" "${{ inputs.output-dir }}/premis"
+            git add -A -- "${{ inputs.output-dir }}"
             git commit -m "Update crawl config exports ($(date -u +%Y-%m-%d))"
             git push
           else

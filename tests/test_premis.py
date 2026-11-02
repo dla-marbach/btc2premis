@@ -3,16 +3,25 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from btc2premis.mapping import BTRIX_NS
 from btc2premis.models import Crawl, CrawlWorkflow, WaczFile
-from btc2premis.premis import PREMIS_NS, build_premis, identifier_value
+from btc2premis.premis import (
+    PREMIS_NS,
+    build_collection_premis,
+    build_premis,
+    collection_combined_json,
+    local_id,
+    referenced_collection_ids,
+)
 from tests.conftest import load_fixture
 
 PREMIS = f"{{{PREMIS_NS}}}"
-BTRIX = f"{{{BTRIX_NS}}}"
+XSI_TYPE = "{http://www.w3.org/2001/XMLSchema-instance}type"
+COLL = "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"
+DOCS = Path(__file__).resolve().parents[1] / "docs"
 
 
 def _wacz_digest(name: str) -> str:
@@ -41,11 +50,30 @@ def build_workflow() -> CrawlWorkflow:
         org={"id": "05b62bc6-7787-4e27-876b-2ac41c63b14b", "name": "DLA Marbach"},
         profile_names={"5c7a2a0e-3d43-4d5c-9c2c-f1c3f4f5a6b7": "DLA-Standardprofil"},
         collection_names={"1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e": "Netzliteratur"},
+        collections={"1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e": load_fixture("collection.json")},
     )
 
 
 def parse() -> ET.Element:
     return ET.fromstring(build_premis(build_workflow()))
+
+
+def objects_of_type(root: ET.Element, object_type: str) -> list[ET.Element]:
+    return [obj for obj in root.findall(f"{PREMIS}object") if obj.get(XSI_TYPE) == object_type]
+
+
+def object_id(element: ET.Element) -> str:
+    return element.findtext(f"{PREMIS}objectIdentifier/{PREMIS}objectIdentifierValue")
+
+
+def linked_objects(event: ET.Element) -> list[tuple[str, str]]:
+    return [
+        (
+            link.findtext(f"{PREMIS}linkingObjectIdentifierValue"),
+            link.findtext(f"{PREMIS}linkingObjectRole"),
+        )
+        for link in event.findall(f"{PREMIS}linkingObjectIdentifier")
+    ]
 
 
 def test_root_is_premis_3() -> None:
@@ -63,32 +91,54 @@ def test_one_document_contains_all_runs_as_events() -> None:
     assert events[0].findtext(f"{PREMIS}eventDateTime") == "2025-06-02T03:00:04Z"
 
 
-def test_identifiers_follow_application_profile() -> None:
+def test_identifiers_are_prefixed_local_ids() -> None:
     root = parse()
-    for identifier in root.iter(f"{PREMIS}objectIdentifierValue"):
-        assert identifier.text.startswith("_")
-    for identifier in root.iter(f"{PREMIS}objectIdentifierType"):
-        assert identifier.text == "UUID"
-
-
-def test_objects_cover_workflow_representations_and_files() -> None:
-    root = parse()
-    types = [
-        obj.get("{http://www.w3.org/2001/XMLSchema-instance}type")
-        for obj in root.findall(f"{PREMIS}object")
+    values = [identifier.text for identifier in root.iter(f"{PREMIS}objectIdentifierValue")]
+    assert values == [
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "cfg-497f6eca-6276-4993-bfeb-53cbbbba6f08",
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1",
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000003-1",
     ]
+    for tag in ("objectIdentifierType", "eventIdentifierType", "agentIdentifierType"):
+        assert {element.text for element in root.iter(f"{PREMIS}{tag}")} == {"local"}
+    events = [element.text for element in root.iter(f"{PREMIS}eventIdentifierValue")]
+    assert events == [
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000003",
+    ]
+    agents = [element.text for element in root.iter(f"{PREMIS}agentIdentifierValue")]
+    assert agents == [
+        "agent-browsertrix-crawler-1.6.1",
+        "agent-browsertrix",
+        "agent-05b62bc6-7787-4e27-876b-2ac41c63b14b",
+        "agent-btc2premis-0.1.0",
+        "agent-browsertrix-crawler-1.7.0",
+    ]
+
+
+def test_objects_cover_website_config_representations_and_files() -> None:
+    root = parse()
+    types = [obj.get(XSI_TYPE) for obj in root.findall(f"{PREMIS}object")]
+    # the website; collections are described in collection documents
     assert types.count("premis:intellectualEntity") == 1
+    # two crawls
     assert types.count("premis:representation") == 2
-    assert types.count("premis:file") == 2
+    # two WACZ files plus the crawl config
+    assert types.count("premis:file") == 3
+
+
+def test_no_custom_namespace_is_used() -> None:
+    document = build_premis(build_workflow())
+    assert "btrix" not in document
+    assert "Extension>" not in document
 
 
 def test_file_object_carries_fixity_size_and_format() -> None:
     root = parse()
-    file_object = [
-        obj
-        for obj in root.findall(f"{PREMIS}object")
-        if obj.get("{http://www.w3.org/2001/XMLSchema-instance}type") == "premis:file"
-    ][0]
+    file_object = objects_of_type(root, "premis:file")[1]
     characteristics = file_object.find(f"{PREMIS}objectCharacteristics")
     assert characteristics.findtext(f"{PREMIS}fixity/{PREMIS}messageDigestAlgorithm") == "SHA-256"
     assert characteristics.findtext(f"{PREMIS}fixity/{PREMIS}messageDigest") == _wacz_digest(
@@ -101,39 +151,116 @@ def test_file_object_carries_fixity_size_and_format() -> None:
         formats[1].findtext(f"{PREMIS}formatRegistry/{PREMIS}formatRegistryKey")
         == "application/wacz"
     )
+    assert characteristics.findtext(
+        f"{PREMIS}creatingApplication/{PREMIS}creatingApplicationVersion"
+    ) == ("1.6.1")
     location = file_object.findtext(
         f"{PREMIS}storage/{PREMIS}contentLocation/{PREMIS}contentLocationValue"
     )
     assert location.endswith(".wacz")
 
 
-def test_configuration_is_stored_in_event_detail_extension() -> None:
+def test_website_is_the_intellectual_entity() -> None:
+    root = parse()
+    website = objects_of_type(root, "premis:intellectualEntity")[0]
+    urls = [
+        prop.findtext(f"{PREMIS}significantPropertiesValue")
+        for prop in website.findall(f"{PREMIS}significantProperties")
+        if prop.findtext(f"{PREMIS}significantPropertiesType") == "seed URL"
+    ]
+    assert urls == ["https://example.org/", "https://example.org/extra"]
+    assert len(website.findall(f"{PREMIS}linkingEventIdentifier")) == 2
+    for representation in objects_of_type(root, "premis:representation")[1:]:
+        relationship = representation.find(f"{PREMIS}relationship")
+        assert relationship.findtext(f"{PREMIS}relationshipSubType") == "represents"
+        assert relationship.findtext(
+            f"{PREMIS}relatedObjectIdentifier/{PREMIS}relatedObjectIdentifierValue"
+        ) == object_id(website)
+
+
+def test_crawl_config_object_holds_current_configuration_as_json() -> None:
+    root = parse()
+    config_object = objects_of_type(root, "premis:file")[0]
+    assert config_object.find(f"{PREMIS}objectCharacteristics/{PREMIS}fixity") is None
+    assert config_object.find(f"{PREMIS}originalName") is None
+    assert (
+        config_object.findtext(
+            f"{PREMIS}objectCharacteristics/{PREMIS}format/{PREMIS}formatDesignation/"
+            f"{PREMIS}formatName"
+        )
+        == "JSON"
+    )
+    configuration = json.loads(
+        config_object.findtext(f"{PREMIS}significantProperties/{PREMIS}significantPropertiesValue")
+    )
+    assert configuration["crawlConfigId"] == "497f6eca-6276-4993-bfeb-53cbbbba6f08"
+    assert configuration["crawlConfigRevision"] == 3
+    assert configuration["settings"]["metadata"]["name"] == "Beispiel-Netzliteratur"
+
+
+def test_json_is_embedded_as_cdata() -> None:
+    document = build_premis(build_workflow())
+    assert "<premis:significantPropertiesValue><![CDATA[{" in document
+    assert "<premis:eventDetail><![CDATA[{" in document
+    assert "<premis:eventOutcomeDetailNote><![CDATA[{" in document
+    assert "a[href]->href" in document  # not XML-escaped inside CDATA
+
+
+def test_effective_configuration_is_stored_in_event_detail() -> None:
     root = parse()
     event = root.find(f"{PREMIS}event")
-    extension = event.find(
-        f"{PREMIS}eventDetailInformation/{PREMIS}eventDetailExtension/{BTRIX}crawlConfiguration"
+    details = event.findall(f"{PREMIS}eventDetailInformation/{PREMIS}eventDetail")
+    assert details[0].text.startswith("Web harvesting with Browsertrix Crawler 1.6.1")
+    configuration = json.loads(details[1].text)
+    assert configuration["crawlConfigRevision"] == 2
+    assert configuration["crawlId"] == "a1b2c3d4-1111-4a2b-8c3d-000000000001"
+    settings = configuration["settings"]
+    assert settings["scope"]["scopeType"] == "prefix"
+    assert settings["scope"]["dedupeCollection"] == {
+        "id": "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e",
+        "name": "Netzliteratur",
+    }
+    assert settings["limits"]["crawlTimeoutSeconds"] == 86400
+    assert settings["browserSettings"]["crawlerImage"].endswith("1.6.1")
+    assert settings["scheduling"]["crawlSchedule"] == "0 3 * * 1"
+    # values not reported for the crawl are taken from the current crawl config
+    inherited = configuration["inheritedFromCrawlConfig"]
+    assert inherited["crawlConfigRevision"] == 3
+    assert "limits.crawlTimeoutSeconds" in inherited["settings"]
+    assert "scheduling.crawlSchedule" in inherited["settings"]
+    assert "scope.scopeType" not in inherited["settings"]
+
+    outcome = json.loads(
+        event.findtext(
+            f"{PREMIS}eventOutcomeInformation/{PREMIS}eventOutcomeDetail/"
+            f"{PREMIS}eventOutcomeDetailNote"
+        )
     )
-    assert extension is not None
-    assert extension.findtext(f"{BTRIX}scope/{BTRIX}scopeType") == "prefix"
-    assert extension.findtext(f"{BTRIX}scope/{BTRIX}dedupeCollection/{BTRIX}id") == (
-        "1a9d0e88-5a97-4a4d-9a2a-2e0a4b5c6d7e"
-    )
-    assert extension.findtext(f"{BTRIX}scope/{BTRIX}dedupeCollection/{BTRIX}name") == (
-        "Netzliteratur"
-    )
-    assert extension.findtext(f"{BTRIX}limits/{BTRIX}crawlTimeoutSeconds") == "86400"
-    assert extension.findtext(f"{BTRIX}browserSettings/{BTRIX}crawlerImage").endswith("1.6.1")
-    assert extension.findtext(f"{BTRIX}scheduling/{BTRIX}crawlSchedule") == "0 3 * * 1"
+    assert outcome["crawlExecSeconds"] == 2331
+    assert outcome["errorPageCount"] == 3
 
 
-def test_workflow_object_holds_current_configuration() -> None:
+def test_crawl_config_is_linked_to_all_its_crawls() -> None:
     root = parse()
-    workflow_object = root.find(f"{PREMIS}object")
-    extension = workflow_object.find(
-        f"{PREMIS}significantProperties/{PREMIS}significantPropertiesExtension/{BTRIX}crawlWorkflow"
-    )
-    assert extension is not None
-    assert extension.findtext(f"{BTRIX}metadata/{BTRIX}name") == "Beispiel-Netzliteratur"
+    website = objects_of_type(root, "premis:intellectualEntity")[0]
+    config_object = objects_of_type(root, "premis:file")[0]
+    events = root.findall(f"{PREMIS}event")
+
+    for event in events:
+        links = linked_objects(event)
+        assert (object_id(website), "source") in links
+        # also for the crawl that ran with an earlier revision of the crawl config
+        assert (object_id(config_object), "source") in links
+        assert (f"webcoll-{COLL}", "source") in links  # member or dedupe collection
+    assert ("crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003", "outcome") in linked_objects(events[1])
+
+    config_events = [
+        link.findtext(f"{PREMIS}linkingEventIdentifierValue")
+        for link in config_object.findall(f"{PREMIS}linkingEventIdentifier")
+    ]
+    assert config_events == [
+        event.findtext(f"{PREMIS}eventIdentifier/{PREMIS}eventIdentifierValue") for event in events
+    ]
 
 
 def test_crawler_version_becomes_software_agent() -> None:
@@ -162,13 +289,45 @@ def test_users_are_omitted_by_default_and_added_on_request() -> None:
     assert "<premis:agentType>person</premis:agentType>" in with_users
 
 
+def test_name_based_user_agents_have_collision_resistant_identifiers() -> None:
+    workflow = build_workflow()
+    workflow.crawls = [
+        Crawl(raw={"id": "one", "userName": "Alice+Archive"}),
+        Crawl(raw={"id": "two", "userName": "Alice-Archive"}),
+        Crawl(raw={"id": "three", "userName": "東京"}),
+    ]
+
+    root = ET.fromstring(build_premis(workflow, include_users=True))
+    user_agents = [
+        agent
+        for agent in root.findall(f"{PREMIS}agent")
+        if agent.findtext(f"{PREMIS}agentType") == "person"
+    ]
+    identifiers = [
+        agent.findtext(f"{PREMIS}agentIdentifier/{PREMIS}agentIdentifierValue")
+        for agent in user_agents
+    ]
+
+    assert [agent.findtext(f"{PREMIS}agentName") for agent in user_agents] == [
+        "Alice+Archive",
+        "Alice-Archive",
+        "東京",
+    ]
+    assert identifiers == [
+        f"agent-alice-archive-{hashlib.sha256(name.encode('utf-8')).hexdigest()}"
+        for name in ("Alice+Archive", "Alice-Archive")
+    ] + [f"agent-{hashlib.sha256('東京'.encode()).hexdigest()}"]
+
+
 def test_output_is_deterministic() -> None:
     assert build_premis(build_workflow()) == build_premis(build_workflow())
 
 
-def test_identifier_value_prefixes_underscore_once() -> None:
-    assert identifier_value("abc") == "_abc"
-    assert identifier_value("_abc") == "_abc"
+def test_local_id_normalizes_names() -> None:
+    assert local_id("crawl", "a1b2-C3") == "crawl-a1b2-c3"
+    assert local_id("agent", "Browsertrix Crawler", "1.7.0") == "agent-browsertrix-crawler-1.7.0"
+    assert local_id("agent", "Browsertrix Crawler", "") == "agent-browsertrix-crawler"
+    assert local_id("agent", "DLA Marbach (Webarchiv)") == "agent-dla-marbach-webarchiv"
 
 
 def test_presigned_urls_are_not_exported() -> None:
@@ -178,6 +337,198 @@ def test_presigned_urls_are_not_exported() -> None:
 
 
 def test_example_document_in_docs_is_up_to_date() -> None:
-    """``docs/example-premis.xml`` is a golden file for the fixture data."""
-    example = Path(__file__).resolve().parents[1] / "docs" / "example-premis.xml"
+    """``docs/example-website-premis.xml`` is a golden file for the fixture data."""
+    example = DOCS / "example-website-premis.xml"
     assert example.read_text(encoding="utf-8") == build_premis(build_workflow())
+
+
+def test_example_collection_documents_in_docs_are_up_to_date() -> None:
+    """``docs/example-collection-*`` are golden files for the fixture data."""
+    collection, workflows = load_fixture("collection.json"), [build_workflow()]
+    premis_example = DOCS / "example-collection-premis.xml"
+    json_example = DOCS / "example-collection-combined.json"
+    assert premis_example.read_text(encoding="utf-8") == build_collection_premis(
+        COLL, collection, workflows
+    )
+    assert json_example.read_text(encoding="utf-8") == collection_combined_json(
+        COLL, collection, workflows
+    )
+
+
+def test_entries_are_separated_by_comments_and_blank_lines() -> None:
+    document = build_premis(build_workflow())
+    for section in ("OBJECTS", "EVENTS", "AGENTS"):
+        assert f"\n\n  <!-- {'=' * 20} {section} {'=' * 20} -->\n\n" in document
+    assert (
+        "\n\n  <!-- Crawl config 'Beispiel-Netzliteratur', current revision 3 -->\n"
+        "  <premis:object" in document
+    )
+    assert "<!-- Capture of crawl a1b2c3d4-1111-4a2b-8c3d-000000000001 -->" in document
+
+
+def test_comments_stay_well_formed_for_unusual_names() -> None:
+    workflow = build_workflow()
+    workflow.raw["name"] = "Test -- Website-"
+    document = build_premis(workflow)
+    ET.fromstring(document)
+    assert "<!-- Crawl config 'Test - - Website-', current revision 3 -->" in document
+
+
+def related_ids(element: ET.Element, sub_type: str) -> list[str]:
+    return [
+        relationship.findtext(
+            f"{PREMIS}relatedObjectIdentifier/{PREMIS}relatedObjectIdentifierValue"
+        )
+        for relationship in element.findall(f"{PREMIS}relationship")
+        if relationship.findtext(f"{PREMIS}relationshipSubType") == sub_type
+    ]
+
+
+def linked_events(element: ET.Element) -> list[str]:
+    return [
+        link.findtext(f"{PREMIS}linkingEventIdentifierValue")
+        for link in element.findall(f"{PREMIS}linkingEventIdentifier")
+    ]
+
+
+def parse_collection(workflows: list[CrawlWorkflow] | None = None) -> ET.Element:
+    workflows = workflows if workflows is not None else [build_workflow()]
+    return ET.fromstring(build_collection_premis(COLL, load_fixture("collection.json"), workflows))
+
+
+def second_workflow() -> CrawlWorkflow:
+    """Another crawl config whose only crawl belongs to the collection."""
+    crawl = Crawl(
+        raw={"id": "b0000000-2222-4a2b-8c3d-000000000001", "collectionIds": [COLL]},
+        files=[
+            WaczFile(name="b1.wacz", hash="00", size=1),
+            WaczFile(name="b2.wacz", hash="", size=0),
+        ],
+    )
+    return CrawlWorkflow(raw={"id": "0b000000-0000-4000-8000-000000000002"}, crawls=[crawl])
+
+
+def test_website_document_refers_to_collections_by_identifier_only() -> None:
+    root = parse()
+    (website,) = objects_of_type(root, "premis:intellectualEntity")
+    assert related_ids(website, "is included in") == [f"webcoll-{COLL}"]
+    assert all(
+        not object_id(obj).startswith(("webcoll-", "coll-")) for obj in root.iter(f"{PREMIS}object")
+    )
+
+    member_file, other_file = objects_of_type(root, "premis:file")[1:]
+    assert related_ids(member_file, "is part of") == [
+        "crawl-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        f"coll-{COLL}",
+    ]
+    assert related_ids(other_file, "is part of") == ["crawl-a1b2c3d4-1111-4a2b-8c3d-000000000003"]
+
+    member_event, dedupe_event = root.findall(f"{PREMIS}event")
+    for event in (member_event, dedupe_event):
+        assert (f"webcoll-{COLL}", "source") in linked_objects(event)
+    assert (f"coll-{COLL}", "outcome") in linked_objects(member_event)
+    assert (f"coll-{COLL}", "outcome") not in linked_objects(dedupe_event)
+
+
+def test_collection_document_contains_only_the_collection_objects() -> None:
+    root = parse_collection()
+    assert [object_id(obj) for obj in root.findall(f"{PREMIS}object")] == [
+        f"webcoll-{COLL}",
+        f"coll-{COLL}",
+    ]
+    assert root.findall(f"{PREMIS}event") == []
+    assert root.findall(f"{PREMIS}agent") == []
+
+
+def test_collection_of_websites_includes_the_website() -> None:
+    root = parse_collection()
+    (website_collection,) = objects_of_type(root, "premis:intellectualEntity")
+    assert object_id(website_collection) == f"webcoll-{COLL}"
+    assert website_collection.findtext(f"{PREMIS}originalName") == "Netzliteratur"
+    assert related_ids(website_collection, "includes") == [
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08"
+    ]
+
+    metadata = json.loads(
+        website_collection.findtext(
+            f"{PREMIS}significantProperties/{PREMIS}significantPropertiesValue"
+        )
+    )
+    assert metadata["collectionId"] == COLL
+    assert metadata["caption"] == "Websites deutschsprachiger Netzliteratur"
+    assert metadata["description"].startswith("Sammlung von Websites")
+    assert "totalSize" not in metadata  # volatile statistics are left out
+
+    # crawl 1 belongs to the collection, crawl 2 was only deduplicated against it
+    assert linked_events(website_collection) == [
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000001",
+        "event-a1b2c3d4-1111-4a2b-8c3d-000000000003",
+    ]
+
+
+def test_collection_is_representation_of_its_collection_of_websites() -> None:
+    root = parse_collection()
+    (collection,) = objects_of_type(root, "premis:representation")
+    assert object_id(collection) == f"coll-{COLL}"
+    assert related_ids(collection, "represents") == [f"webcoll-{COLL}"]
+    # only crawl 1 is a member (collectionIds), so only its WACZ file is a part
+    assert related_ids(collection, "has part") == ["wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1"]
+    assert linked_events(collection) == ["event-a1b2c3d4-1111-4a2b-8c3d-000000000001"]
+
+
+def test_collection_document_spans_all_crawl_configs() -> None:
+    root = parse_collection([second_workflow(), build_workflow()])
+    website_collection, collection = root.findall(f"{PREMIS}object")
+    # crawl configs are ordered by id, independent of the order passed in
+    assert related_ids(website_collection, "includes") == [
+        "web-0b000000-0000-4000-8000-000000000002",
+        "web-497f6eca-6276-4993-bfeb-53cbbbba6f08",
+    ]
+    assert related_ids(collection, "has part") == [
+        "wacz-b0000000-2222-4a2b-8c3d-000000000001-1",
+        "wacz-b0000000-2222-4a2b-8c3d-000000000001-2",
+        "wacz-a1b2c3d4-1111-4a2b-8c3d-000000000001-1",
+    ]
+
+
+def test_collection_name_falls_back_to_resolved_names() -> None:
+    document = build_collection_premis(COLL, {}, [build_workflow()])
+    root = ET.fromstring(document)
+    assert "<!-- Collection 'Netzliteratur' -->" in document
+    assert "significantProperties" not in document
+    assert root.findall(f"{PREMIS}object")[1].findtext(f"{PREMIS}originalName") == "Netzliteratur"
+
+
+def test_collection_combined_json_lists_the_references() -> None:
+    payload = json.loads(
+        collection_combined_json(
+            COLL, load_fixture("collection.json"), [build_workflow(), second_workflow()]
+        )
+    )
+    assert payload["collection"]["id"] == COLL
+    assert "crawlCount" not in payload["collection"]
+    assert [entry["id"] for entry in payload["crawlconfigs"]] == [
+        "0b000000-0000-4000-8000-000000000002",
+        "497f6eca-6276-4993-bfeb-53cbbbba6f08",
+    ]
+    by_id = {crawl["id"]: crawl for crawl in payload["crawls"]}
+    assert by_id["a1b2c3d4-1111-4a2b-8c3d-000000000001"]["member"] is True
+    dedupe_only = by_id["a1b2c3d4-1111-4a2b-8c3d-000000000003"]
+    assert (dedupe_only["member"], dedupe_only["dedupe"]) == (False, True)
+    assert "files" not in dedupe_only
+    assert by_id["b0000000-2222-4a2b-8c3d-000000000001"]["files"] == ["b1.wacz", "b2.wacz"]
+
+
+def test_referenced_collection_ids() -> None:
+    assert referenced_collection_ids([build_workflow(), second_workflow()]) == [COLL]
+
+
+def test_no_collection_references_without_collection_ids() -> None:
+    workflow = build_workflow()
+    for crawl in workflow.crawls:
+        crawl.raw.pop("collectionIds", None)
+        crawl.raw["config"].pop("dedupeCollId", None)
+    document = build_premis(workflow)
+    assert "webcoll-" not in document
+    assert "coll-" not in document
+    assert referenced_collection_ids([workflow]) == []
