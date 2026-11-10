@@ -39,7 +39,7 @@ jobs:
 Neue Version im Daten-Repo einführen, zuerst als Test, dann produktiv:
 
 1. **Vorbereiten:** Release Notes lesen, ggf. neue Secrets im Daten-Repo anlegen.
-2. **Testen:** Im Daten-Repo einen Branch anlegen, in den Trigger-Workflows `uses:` und `ref` auf die neue Version setzen, Pull Request öffnen. Über „Actions“ → „Run workflow“ die Workflows auf diesem Branch starten. Sie committen das Ergebnis in den Branch; der Diff im Pull Request zeigt die Auswirkungen der neuen Version auf die Exportdaten.
+2. **Testen:** Im Daten-Repo einen Branch anlegen, in den Trigger-Workflows `uses:` und `ref` auf die neue Version setzen, `data/websites/` und `data/collections/` löschen (sonst exportiert der Lauf nur geänderte Crawl Configs neu, und die übrigen Dateien stammen noch von der alten Version), committen und Pull Request öffnen. Über „Actions“ → „Run workflow“ die Workflows auf diesem Branch starten. Sie committen das Ergebnis in den Branch; der Diff im Pull Request zeigt die Auswirkungen der neuen Version auf die Exportdaten.
 3. **Produktiv nehmen:** Ist der Diff wie erwartet, den Pull Request per Squash mergen. Ab dem nächsten geplanten Lauf auf `main` gilt die neue Version. Sonst den Pull Request schließen und den Fix als neues Patch-Release ausliefern.
 
 ## Rollback

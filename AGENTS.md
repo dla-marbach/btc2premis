@@ -18,7 +18,7 @@ Regeln für KI-Agenten in diesem Repository. Zweck, Aufbau und Befehle des Proje
 
 ## Abhängigkeiten
 - Updates von Abhängigkeiten, GitHub Actions und Base Images übernimmt Dependabot. Ändere Versionen nur, wenn die Aufgabe es erfordert.
-- Füge neue Abhängigkeiten nur hinzu, wenn die Aufgabe es erfordert, und begründe sie im PR. Das Paket kommt zur Laufzeit ohne Abhängigkeiten aus; das soll so bleiben.
+- Füge neue Abhängigkeiten nur hinzu, wenn die Aufgabe es erfordert. Begründe sie im PR und aktualisiere das Lockfile `requirements-dev.txt` (Befehl im README unter „Development“). Das Paket kommt zur Laufzeit ohne Abhängigkeiten aus; das soll so bleiben.
 - Base Image in `.devcontainer/Dockerfile` immer mit festem Versionstag, nie `latest`. GitHub Actions per Commit-SHA.
 - Fremdbibliotheken nur über den Paketmanager einbinden (`pyproject.toml`), nie als kopierte Datei ins Repo.
 

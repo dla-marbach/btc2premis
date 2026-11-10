@@ -31,7 +31,8 @@ updates:
         applies-to: security-updates
         patterns: ["*"]
 
-  # Python-Abhängigkeiten aus pyproject.toml (optionale Extras dev und validate)
+  # Python-Abhängigkeiten: optionale Extras dev und validate aus pyproject.toml,
+  # feste Versionen im Lockfile requirements-dev.txt (pip-compile, aktualisiert Dependabot mit)
   - package-ecosystem: pip
     directory: /
     schedule:

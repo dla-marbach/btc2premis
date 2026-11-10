@@ -6,12 +6,13 @@ Dependabot) and no additional features. All project-specific setup is performed 
 [`post-create.sh`](post-create.sh) after the container is created:
 
 ```bash
-python3 -m pip install -e '.[dev,validate]'
+python3 -m pip install --require-hashes -r requirements-dev.txt
+python3 -m pip install --no-deps -e .
 ```
 
 Compared to the instructions in [`../README.md`](../README.md), the `dev`
 (pytest, ruff) and `validate` (lxml for `--validate`) extras are already
-installed; no manual installation step is required.
+installed, with the exact versions from the lockfile `requirements-dev.txt`; no manual installation step is required.
 
 ## Common commands
 

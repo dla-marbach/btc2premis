@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Einrichtung des Dev-Containers: btc2premis samt Entwicklungs- und
-# Validierungs-Extras editierbar installieren. Läuft im Image
-# mcr.microsoft.com/devcontainers/python:3 (Python ist dort bereits vorhanden).
+# Einrichtung des Dev-Containers: Entwicklungs- und Validierungs-Extras mit
+# festen Versionen aus requirements-dev.txt, btc2premis selbst editierbar
+# installieren. Python ist im Image bereits vorhanden.
 set -euo pipefail
 
 python3 - <<'PY'
@@ -14,6 +14,7 @@ if sys.version_info < (3, 11):
 PY
 
 python3 -m pip install --upgrade pip
-python3 -m pip install -e '.[dev,validate]'
+python3 -m pip install --require-hashes -r requirements-dev.txt
+python3 -m pip install --no-deps -e .
 
 echo "Fertig. Naechste Schritte: 'ruff check .' und 'pytest -q'"
