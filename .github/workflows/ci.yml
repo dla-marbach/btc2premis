@@ -47,6 +47,10 @@ jobs:
   trivy-repo:
     name: Trivy (Repo)
     runs-on: ubuntu-24.04
+    # Trivy erkennt bei pip nur Dateien namens requirements.txt; das Lockfile
+    # requirements-dev.txt muss deshalb ausdrücklich angegeben werden.
+    env:
+      TRIVY_FILE_PATTERNS: 'pip:requirements-dev\.txt'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
