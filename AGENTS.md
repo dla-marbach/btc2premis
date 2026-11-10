@@ -20,6 +20,7 @@ Regeln für KI-Agenten in diesem Repository. Zweck, Aufbau und Befehle des Proje
 - Updates von Abhängigkeiten, GitHub Actions und Base Images übernimmt Dependabot. Ändere Versionen nur, wenn die Aufgabe es erfordert.
 - Füge neue Abhängigkeiten nur hinzu, wenn die Aufgabe es erfordert, und begründe sie im PR. Das Paket kommt zur Laufzeit ohne Abhängigkeiten aus; das soll so bleiben.
 - Base Image in `.devcontainer/Dockerfile` immer mit festem Versionstag, nie `latest`. GitHub Actions per Commit-SHA.
+- Fremdbibliotheken nur über den Paketmanager einbinden (`pyproject.toml`), nie als kopierte Datei ins Repo.
 
 ## Betrieb
 - `btc2premis` ist ein Kommandozeilenwerkzeug und wird nicht als Container betrieben. Produktiv läuft es über die wiederverwendbaren Workflows in `.github/workflows/*-reusable.yml`, die ein separates Daten-Repo per Release-Tag aufruft (siehe `CONTRIBUTING.md`).
