@@ -12,11 +12,12 @@ name: API snapshot (reusable)
 #
 #   jobs:
 #     snapshot:
-#       uses: dla-marbach/btc2premis/.github/workflows/api-snapshot-reusable.yml@main
+#       uses: dla-marbach/btc2premis/.github/workflows/api-snapshot-reusable.yml@vX.Y.Z
 #       permissions:
 #         contents: write
 #         issues: write
 #       with:
+#         ref: vX.Y.Z  # same release tag as in uses:
 #         output-file: data/api-change-snapshot.json
 #       secrets: inherit
 
@@ -43,7 +44,7 @@ on:
           .org.crawlExecSeconds
           .org.usage
       ref:
-        description: "Git ref of dla-marbach/btc2premis to check out and install"
+        description: "Git ref of dla-marbach/btc2premis to check out and install; in production, set it to the same release tag (vX.Y.Z) as in uses:"
         required: false
         type: string
         default: main
@@ -65,7 +66,7 @@ concurrency:
 
 jobs:
   snapshot:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BTC_USER: ${{ secrets.BTC_USER }}
       BTC_PASSWORD: ${{ secrets.BTC_PASSWORD }}
@@ -73,17 +74,19 @@ jobs:
       BTC_BASE_URL: ${{ secrets.BTC_BASE_URL }}
       API_SNAPSHOT_CID: ${{ secrets.API_SNAPSHOT_CID }}
     steps:
+      # Keep credentials: this job pushes its result to the caller repository.
       - name: Checkout caller repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Checkout btc2premis
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: dla-marbach/btc2premis
           ref: ${{ inputs.ref }}
           path: btc2premis-src
+          persist-credentials: false
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
 

@@ -1,6 +1,10 @@
 {
   "name": "btc2premis",
-  "image": "mcr.microsoft.com/devcontainers/python:3",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "vscode",
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
@@ -10,7 +14,9 @@
       ],
       "settings": {
         "python.testing.pytestEnabled": true,
-        "python.testing.pytestArgs": ["tests"],
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
         }

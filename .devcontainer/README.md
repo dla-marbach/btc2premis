@@ -1,16 +1,18 @@
 # Development in GitHub Codespaces / Dev Container
 
-This configuration uses the [`mcr.microsoft.com/devcontainers/python:3`](https://mcr.microsoft.com/en-us/product/devcontainers/python/about)
-image and no additional features. All project-specific setup is performed by
+This configuration builds on the [`mcr.microsoft.com/devcontainers/python`](https://mcr.microsoft.com/en-us/product/devcontainers/python/about)
+image with a fixed version tag (see [`Dockerfile`](Dockerfile), updated by
+Dependabot) and no additional features. All project-specific setup is performed by
 [`post-create.sh`](post-create.sh) after the container is created:
 
 ```bash
-python3 -m pip install -e '.[dev,validate]'
+python3 -m pip install --require-hashes -r requirements-dev.txt
+python3 -m pip install --no-deps -e .
 ```
 
 Compared to the instructions in [`../README.md`](../README.md), the `dev`
 (pytest, ruff) and `validate` (lxml for `--validate`) extras are already
-installed; no manual installation step is required.
+installed, with the exact versions from the lockfile `requirements-dev.txt`; no manual installation step is required.
 
 ## Common commands
 
@@ -43,5 +45,5 @@ If no secrets are set, interactive prompting with `-p` still works.
 
 - If `post-create.sh` does not run (for example, because the setup run was aborted),
   it can be executed manually at any time: `bash .devcontainer/post-create.sh`.
-- The image includes a current Python version; `post-create.sh` aborts if it
-  is older than 3.11.
+- The image includes Python 3.13; `post-create.sh` aborts if it is older than
+  3.11.

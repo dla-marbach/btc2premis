@@ -7,3 +7,10 @@ dist/
 venv/
 .pytest_cache/
 .ruff_cache/
+
+# Local configuration with secrets
+.env
+.env.*
+
+# Editor and operating system
+.DS_Store

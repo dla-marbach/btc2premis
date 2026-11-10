@@ -1,28 +1,88 @@
+# Läuft bei jedem Pull Request nach main und nach jedem Merge auf main.
+# Im PR müssen alle Jobs vor dem Merge grün sein. Ein roter Lauf auf main
+# wird umgehend per Ticket und Fix-PR behoben, vor jedem Release muss er grün sein.
+# Actions sind per Commit-SHA gepinnt (Tags lassen sich verschieben, SHAs nicht),
+# Dependabot aktualisiert SHA und Kommentar.
+# Kein Container-Betrieb, deshalb ohne Image-Build, Image-Scan und Smoketest.
 name: CI
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Linter und Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install
-        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
-      - name: Lint
+      # Feste Versionen aus dem Lockfile (auch für den Trivy-Scan), das Paket selbst ohne Abhängigkeiten.
+      - name: Installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-dev.txt
+          pip install --no-deps -e .
+      - name: Linter
         run: ruff check . && ruff format --check .
-      - name: Test
+      - name: Tests
         run: pytest -q
+      - name: Shell-Skripte prüfen
+        if: matrix.python-version == '3.13'
+        run: shellcheck .devcontainer/post-create.sh
+
+  trivy-repo:
+    name: Trivy (Repo)
+    runs-on: ubuntu-24.04
+    # Trivy erkennt bei pip nur Dateien namens requirements.txt; das Lockfile
+    # requirements-dev.txt muss deshalb ausdrücklich angegeben werden.
+    env:
+      TRIVY_FILE_PATTERNS: 'pip:requirements-dev\.txt'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Erst alle Schweregrade ausgeben (ohne Fehlschlag, auch in der Job-Zusammenfassung),
+      # dann wie bisher nur HIGH und CRITICAL prüfen. Der zweite Lauf nutzt
+      # Trivy und Datenbank aus dem ersten.
+      # Ohne ignore-unfixed: Funde in App-Abhängigkeiten werden immer gemeldet.
+      # Ohne version: Die Action bringt eine feste Trivy-Version mit, Dependabot aktualisiert beides.
+      - name: Repo scannen, alle Schweregrade (Abhängigkeiten, Secrets, Konfiguration)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          output: ${{ runner.temp }}/trivy-repo.txt
+      - name: Ergebnis ausgeben
+        run: |
+          cat "$RUNNER_TEMP/trivy-repo.txt"
+          {
+            echo "### Trivy (Repo): alle Schweregrade"
+            echo '```'
+            cat "$RUNNER_TEMP/trivy-repo.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Repo prüfen (HIGH, CRITICAL)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          skip-setup-trivy: true
+          cache: false
